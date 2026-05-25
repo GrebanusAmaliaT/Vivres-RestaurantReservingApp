@@ -1,6 +1,6 @@
 # TableBooker - Advanced Restaurant Reservation System
 
-A robust, (soon-to-be) enterprise-grade full-stack web application designed to streamline the restaurant discovery and table booking process. The system connects food enthusiasts with local dining venues, offering real-time availability management, dynamic filtering, and a secure multi-role ecosystem.
+(soon-to-be) enterprise-grade full-stack web application designed to streamline the restaurant discovery and table booking process. The system connects food enthusiasts with local dining venues, offering real-time availability management, dynamic filtering, and a secure multi-role ecosystem.
 
 Built using a decoupled architecture with a high-performance **.NET 8 Web API** backend and a highly responsive **React (Vite) + TypeScript** frontend.
 
@@ -62,10 +62,3 @@ The backend follows a clean, maintainable architecture separation to ensure scal
 ### Prerequisites
 - **Backend:** .NET 8.0 SDK / SQL Server Express or LocalDB
 - **Frontend:** Node.js (v18+) & npm
-
-### Installation Steps
-
-1. **Database Initialization:**
-   Configure your connection string inside `appsettings.json`, then execute the EF database update command:
-   ```bash
-   dotnet ef database update --project AplicatieRezervari.Server
