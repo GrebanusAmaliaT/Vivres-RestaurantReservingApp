@@ -28,36 +28,127 @@ namespace AplicatieRezervari.Server.Services
                 throw new KeyNotFoundException("Restaurant not found");
             }
 
+            // Main orchestrator splits the logic based on reservation type
+            if (dto.IsEvent)
+            {
+                return await HandleEventReservationAsync(dto, restaurant, userId);
+            }
+
+            return await HandleRegularReservationAsync(dto, restaurant, userId);
+        }
+
+        private async Task<ReservationDto> HandleEventReservationAsync(CreateReservationDto dto, Restaurant restaurant, string userId)
+        {
+            if (!restaurant.AcceptsEvents)
+            {
+                throw new ArgumentException("This restaurant does not host special events");
+            }
+
+            if (restaurant.MinPeopleForEvents.HasValue && dto.NumberOfPeople < restaurant.MinPeopleForEvents.Value)
+            {
+                throw new ArgumentException($"Minimum required people for an event at this location is {restaurant.MinPeopleForEvents}");
+            }
+
             if (dto.NumberOfPeople > restaurant.Capacity)
             {
-                throw new ArgumentException("Number of people exceeds restaurant capacity");
+                throw new ArgumentException("The number of people exceeds the total capacity of the restaurant");
+            }
+
+            // Check if the restaurant has ANY reservation on that specific day
+            var hasExistingReservations = restaurant.Tables.Any(t => t.Reservations.Any(r =>
+                r.Status == "Confirmed" && r.ReservationDate.Date == dto.ReservationDate.Date));
+
+            if (hasExistingReservations)
+            {
+                throw new ArgumentException("The restaurant is already booked for another reservation or event on this day");
+            }
+
+            decimal menuPrice = dto.EventMenuType?.ToLower() switch
+            {
+                "wedding" => restaurant.WeddingMenuPricePerPerson ?? 0,
+                "baptism" => restaurant.BaptismMenuPricePerPerson ?? 0,
+                _ => restaurant.AnniversaryMenuPricePerPerson ?? 0
+            };
+
+            var reservation = new Reservation
+            {
+                Id = Guid.NewGuid(),
+                RestaurantId = restaurant.Id,
+                UserId = userId,
+                ReservationDate = dto.ReservationDate,
+                NumberOfPeople = dto.NumberOfPeople,
+                SpecialRequests = dto.SpecialRequests,
+                Status = "Pending",
+                Type = ReservationType.Event,
+                EventMenuType = dto.EventMenuType,
+                EstimatedTotalCost = menuPrice * dto.NumberOfPeople,
+                RestaurantTableId = null
+            };
+
+            var result = await _reservationRepository.CreateAsync(reservation);
+            _logger.LogInformation("Event reservation {Id} created for venue {RestaurantId}", result.Id, restaurant.Id);
+
+            return MapToDto(result, restaurant.Name);
+        }
+
+        private async Task<ReservationDto> HandleRegularReservationAsync(CreateReservationDto dto, Restaurant restaurant, string userId)
+        {
+            var reservationTime = dto.ReservationDate.TimeOfDay;
+            if (reservationTime < restaurant.OpeningTime || reservationTime > restaurant.ClosingTime)
+            {
+                throw new ArgumentException("The restaurant is closed at the selected time");
+            }
+
+            var requestedStart = dto.ReservationDate;
+            var requestedEnd = requestedStart.AddHours(restaurant.DefaultReservationDurationInHours);
+
+           var availableTable = restaurant.Tables
+                .Where(t => t.Capacity >= dto.NumberOfPeople)
+                .OrderBy(t => t.Capacity)
+                .FirstOrDefault(t => !t.Reservations.Any(r =>
+                    r.Status == "Confirmed" &&
+                    ((requestedStart >= r.ReservationDate && requestedStart < r.ReservationDate.AddHours(restaurant.DefaultReservationDurationInHours)) ||
+                     (requestedEnd > r.ReservationDate && requestedEnd <= r.ReservationDate.AddHours(restaurant.DefaultReservationDurationInHours)) ||
+                     (requestedStart <= r.ReservationDate && requestedEnd >= r.ReservationDate.AddHours(restaurant.DefaultReservationDurationInHours)))));
+
+            if (availableTable == null)
+            {
+                throw new ArgumentException("No tables available for the selected time and number of people");
             }
 
             var reservation = new Reservation
             {
                 Id = Guid.NewGuid(),
-                RestaurantId = dto.RestaurantId,
+                RestaurantId = restaurant.Id,
                 UserId = userId,
                 ReservationDate = dto.ReservationDate,
                 NumberOfPeople = dto.NumberOfPeople,
                 SpecialRequests = dto.SpecialRequests,
-                Status = "Pending"
+                Status = "Pending",
+                Type = ReservationType.Regular,
+                RestaurantTableId = availableTable.Id,
+                EstimatedTotalCost = 0
             };
 
             var result = await _reservationRepository.CreateAsync(reservation);
-            _logger.LogInformation("New reservation created with ID {Id} for user {UserId}", result.Id, userId);
+            _logger.LogInformation("Regular reservation {Id} assigned to Table {TableId}", result.Id, availableTable.Id);
 
+            return MapToDto(result, restaurant.Name);
+        }
+
+        private ReservationDto MapToDto(Reservation result, string restaurantName)
+        {
             return new ReservationDto
             {
                 Id = result.Id,
-                ReservationDate = result.ReservationDate,
+                ReservationDate = result.ReservationDate, // or result.ReservationDate depending on your model field name
                 NumberOfPeople = result.NumberOfPeople,
-                SpecialRequests = result.SpecialRequests,
                 Status = result.Status,
-                RestaurantName = restaurant.Name,
-                RestaurantAddress = restaurant.Address
+                RestaurantName = restaurantName,
+                EstimatedTotalCost = result.EstimatedTotalCost
             };
         }
+
 
         public async Task<IEnumerable<ReservationDto>> GetClientReservationsAsync(string userId)
         {

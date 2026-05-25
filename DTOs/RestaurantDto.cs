@@ -9,6 +9,10 @@
         public int Capacity { get; set; }
         public decimal AverageBudget { get; set; }
         public string CityName { get; set; }
+
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
         public List<string> CuisineTypes { get; set; }
         public List<string> Facilities { get; set; }
     }

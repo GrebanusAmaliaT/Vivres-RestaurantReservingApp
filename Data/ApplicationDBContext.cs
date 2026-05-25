@@ -19,6 +19,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RestaurantFacility> RestaurantFacilities { get; set; } = default!;
     public DbSet<RestaurantCuisine> RestaurantCuisines { get; set; } = default!;
     public DbSet<Review> Reviews { get; set; } = default!;
+    public DbSet<RestaurantTable> RestaurantTables { get; set; } = default!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

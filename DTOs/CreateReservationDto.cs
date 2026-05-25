@@ -6,5 +6,8 @@
         public DateTime ReservationDate { get; set; }
         public int NumberOfPeople { get; set; }
         public string? SpecialRequests { get; set; }
+
+        public bool IsEvent { get; set; }
+        public string? EventMenuType { get; set; }
     }
 }

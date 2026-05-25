@@ -31,7 +31,10 @@ namespace AplicatieRezervari.Server.Services
                 AverageBudget = r.AverageBudget,
                 CityName = r.City.Name,
                 CuisineTypes = r.RestaurantCuisines.Select(rc => rc.CuisineType.Name).ToList(),
-                Facilities = r.RestaurantFacilities.Select(rf => rf.Facility.Name).ToList()
+                Facilities = r.RestaurantFacilities.Select(rf => rf.Facility.Name).ToList(),
+
+                Latitude = r.Latitude,
+                Longitude = r.Longitude
             });
         }
 
@@ -52,7 +55,9 @@ namespace AplicatieRezervari.Server.Services
                 AverageBudget = r.AverageBudget,
                 CityName = r.City.Name,
                 CuisineTypes = r.RestaurantCuisines.Select(rc => rc.CuisineType.Name).ToList(),
-                Facilities = r.RestaurantFacilities.Select(rf => rf.Facility.Name).ToList()
+                Facilities = r.RestaurantFacilities.Select(rf => rf.Facility.Name).ToList(),
+                Latitude = r.Latitude,
+                Longitude = r.Longitude
             };
         }
     }

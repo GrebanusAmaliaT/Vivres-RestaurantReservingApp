@@ -10,5 +10,6 @@
         public string RestaurantName { get; set; }
         public string RestaurantAddress { get; set; }
         public string UserEmail { get; set; }
+        public decimal EstimatedTotalCost { get; set; }
     }
 }
