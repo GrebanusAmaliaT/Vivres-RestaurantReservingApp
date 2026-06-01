@@ -19,7 +19,7 @@ namespace AplicatieRezervari.Server.Controllers
         }
 
         [HttpPost("setup")]
-        [Authorize]
+        [Authorize(Roles = "RestaurantManager")]
         public async Task<IActionResult> SetupRestaurant([FromForm] RestaurantSetupInput input)
         {
             var managerId = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -33,7 +33,7 @@ namespace AplicatieRezervari.Server.Controllers
         }
 
         [HttpGet("my-restaurant")]
-        [Authorize]
+        [Authorize(Roles = "RestaurantManager")]
         public async Task<IActionResult> GetMyRestaurant()
         {
             var managerId = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -84,6 +84,66 @@ namespace AplicatieRezervari.Server.Controllers
                 return NotFound(new { message = "Restaurant not found" });
 
             return Ok(restaurant);
+        }
+
+        [HttpGet("event-types")]
+        public async Task<IActionResult> GetEventTypes()
+        {
+            var eventTypes = await _restaurantService.GetEventTypesAsync();
+            return Ok(eventTypes);
+        }
+
+        [HttpGet("my-event-options")]
+        [Authorize(Roles = "RestaurantManager")]
+        public async Task<IActionResult> GetMyEventOptions()
+        {
+            var managerId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                            ?? User.FindFirst("id")?.Value;
+
+            if (managerId == null)
+            {
+                return Unauthorized();
+            }
+
+            var options = await _restaurantService.GetMyEventOptionsAsync(managerId);
+            return Ok(options);
+        }
+
+        [HttpPost("event-options")]
+        [Authorize(Roles = "RestaurantManager")]
+        public async Task<IActionResult> UpdateEventOptions([FromBody] UpdateRestaurantEventsDto dto)
+        {
+            var managerId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                            ?? User.FindFirst("id")?.Value;
+
+            if (managerId == null)
+            {
+                return Unauthorized();
+            }
+
+            await _restaurantService.UpdateMyEventOptionsAsync(managerId, dto);
+
+            return Ok(new
+            {
+                message = "Event settings updated successfully"
+            });
+        }
+
+        [HttpGet("events")]
+        public async Task<IActionResult> GetEventRestaurants(
+            [FromQuery] Guid? cityId,
+            [FromQuery] Guid? eventTypeId,
+            [FromQuery] int? numberOfPeople,
+            [FromQuery] decimal? maxPricePerPerson)
+        {
+            var restaurants = await _restaurantService.GetEventRestaurantsAsync(
+                cityId,
+                eventTypeId,
+                numberOfPeople,
+                maxPricePerPerson
+            );
+
+            return Ok(restaurants);
         }
     }
 }

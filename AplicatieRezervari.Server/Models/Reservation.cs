@@ -27,6 +27,8 @@ public class Reservation
     public ReservationType Type { get; set; }
 
     public string? EventMenuType { get; set; }
+    public Guid? EventTypeId { get; set; }
+    public virtual EventType? EventType { get; set; }
 
     public decimal EstimatedTotalCost { get; set; }
 

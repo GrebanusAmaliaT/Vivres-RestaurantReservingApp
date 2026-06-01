@@ -61,20 +61,38 @@ namespace AplicatieRezervari.Server.Services
         }
 
         private async Task<ReservationDto> HandleEventReservationAsync(
-            CreateReservationDto dto,
-            Restaurant restaurant,
-            string userId)
+    CreateReservationDto dto,
+    Restaurant restaurant,
+    string userId)
         {
             if (!restaurant.AcceptsEvents)
             {
                 throw new ArgumentException("Acest restaurant nu accepta evenimente speciale.");
             }
 
-            if (restaurant.MinPeopleForEvents.HasValue &&
-                dto.NumberOfPeople < restaurant.MinPeopleForEvents.Value)
+            if (!dto.EventTypeId.HasValue)
             {
-                throw new ArgumentException(
-                    $"Numarul minim de persoane pentru eveniment este {restaurant.MinPeopleForEvents.Value}.");
+                throw new ArgumentException("Trebuie selectat tipul evenimentului.");
+            }
+
+            var eventOption = restaurant.EventOptions
+                .FirstOrDefault(e =>
+                    e.EventTypeId == dto.EventTypeId.Value &&
+                    e.IsEnabled);
+
+            if (eventOption == null)
+            {
+                throw new ArgumentException("Restaurantul nu organizeaza acest tip de eveniment.");
+            }
+
+            if (dto.NumberOfPeople < eventOption.MinPeople)
+            {
+                throw new ArgumentException($"Numarul minim de persoane pentru acest eveniment este {eventOption.MinPeople}.");
+            }
+
+            if (eventOption.MaxPeople.HasValue && dto.NumberOfPeople > eventOption.MaxPeople.Value)
+            {
+                throw new ArgumentException($"Numarul maxim de persoane pentru acest eveniment este {eventOption.MaxPeople.Value}.");
             }
 
             var hasConfirmedReservationOnSameDay = HasConfirmedReservationOnSameDay(
@@ -87,14 +105,6 @@ namespace AplicatieRezervari.Server.Services
                 throw new ArgumentException("Restaurantul are deja o rezervare confirmata in acea zi.");
             }
 
-            decimal menuPrice = dto.EventMenuType?.ToLower() switch
-            {
-                "wedding" => restaurant.WeddingMenuPricePerPerson ?? 0,
-                "baptism" => restaurant.BaptismMenuPricePerPerson ?? 0,
-                "anniversary" => restaurant.AnniversaryMenuPricePerPerson ?? 0,
-                _ => restaurant.AnniversaryMenuPricePerPerson ?? 0
-            };
-
             var reservation = new Reservation
             {
                 Id = Guid.NewGuid(),
@@ -105,23 +115,21 @@ namespace AplicatieRezervari.Server.Services
                 SpecialRequests = dto.SpecialRequests,
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow,
+
                 Type = ReservationType.Event,
-                EventMenuType = dto.EventMenuType,
-                EstimatedTotalCost = menuPrice * dto.NumberOfPeople,
+
+                EventTypeId = eventOption.EventTypeId,
+                EventMenuType = eventOption.EventType.Name,
+
+                EstimatedTotalCost = eventOption.PricePerPerson * dto.NumberOfPeople,
+
                 RestaurantTableId = null
             };
 
             var result = await _reservationRepository.CreateAsync(reservation);
 
-            _logger.LogInformation(
-                "Event reservation {ReservationId} created for restaurant {RestaurantId}",
-                result.Id,
-                restaurant.Id
-            );
-
             return MapToDto(result, restaurant);
         }
-
         private async Task<ReservationDto> HandleRegularReservationAsync(
             CreateReservationDto dto,
             Restaurant restaurant,
@@ -362,7 +370,9 @@ namespace AplicatieRezervari.Server.Services
                 RestaurantAddress = restaurant.Address,
                 UserEmail = reservation.User?.Email ?? string.Empty,
                 EstimatedTotalCost = reservation.EstimatedTotalCost,
-                CreatedAt = reservation.CreatedAt
+                CreatedAt = reservation.CreatedAt,
+                EventTypeId = reservation.EventTypeId,
+                EventTypeName = reservation.EventType?.Name ?? reservation.EventMenuType
             };
         }
     }

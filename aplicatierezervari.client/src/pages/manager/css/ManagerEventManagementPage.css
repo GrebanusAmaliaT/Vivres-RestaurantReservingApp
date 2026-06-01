@@ -1,0 +1,226 @@
+.manager-events-page {
+    min-height: 100vh;
+    background: #fbfaf7;
+    color: #1f1f1f;
+}
+
+.manager-events-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 58px 24px 90px;
+}
+
+.manager-events-header {
+    margin-bottom: 34px;
+}
+
+.manager-events-kicker {
+    display: inline-block;
+    color: #8b6508;
+    font-family: monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 10px;
+}
+
+.manager-events-title-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid #eee7d8;
+    padding-bottom: 28px;
+}
+
+    .manager-events-title-row h1 {
+        font-size: clamp(32px, 4vw, 52px);
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        margin-bottom: 12px;
+    }
+
+    .manager-events-title-row p {
+        color: #6f6f6f;
+        max-width: 720px;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+.manager-events-save-btn {
+    border: none;
+    border-radius: 14px;
+    background: #1f1f1f;
+    color: #ffffff;
+    padding: 13px 24px;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+    .manager-events-save-btn:hover {
+        background: #8b6508;
+        transform: translateY(-1px);
+    }
+
+    .manager-events-save-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+.manager-events-global-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: #ffffff;
+    border: 1px solid #eee7d8;
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.05);
+    margin-bottom: 34px;
+}
+
+    .manager-events-global-card h2 {
+        font-size: 26px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .manager-events-global-card p {
+        color: #6f6f6f;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+.manager-events-main-toggle,
+.manager-event-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: #8b6508;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+    .manager-events-main-toggle input,
+    .manager-event-toggle input {
+        width: 18px;
+        height: 18px;
+        accent-color: #8b6508;
+    }
+
+.manager-events-disabled-section {
+    opacity: 0.58;
+}
+
+.manager-events-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.manager-event-card {
+    background: #ffffff;
+    border: 1px solid #eee7d8;
+    border-radius: 28px;
+    padding: 26px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.055);
+}
+
+.manager-event-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+    .manager-event-card-header h3 {
+        font-size: 24px;
+        font-weight: 500;
+        margin: 0;
+    }
+
+.manager-event-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.manager-event-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.manager-event-field-full {
+    grid-column: 1 / -1;
+}
+
+.manager-event-field label {
+    color: #6f6f6f;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.manager-event-field input,
+.manager-event-field textarea {
+    width: 100%;
+    border: 1px solid #e2dac7;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #1f1f1f;
+    padding: 12px 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.manager-event-field textarea {
+    resize: vertical;
+}
+
+    .manager-event-field input:focus,
+    .manager-event-field textarea:focus {
+        border-color: #c8a95a;
+        box-shadow: 0 0 0 4px rgba(200, 169, 90, 0.14);
+    }
+
+    .manager-event-field input:disabled,
+    .manager-event-field textarea:disabled {
+        background: #f5f2ec;
+        color: #9b9b9b;
+    }
+
+@media (max-width: 980px) {
+    .manager-events-title-row,
+    .manager-events-global-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .manager-events-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .manager-events-container {
+        padding: 42px 18px 70px;
+    }
+
+    .manager-event-fields {
+        grid-template-columns: 1fr;
+    }
+}

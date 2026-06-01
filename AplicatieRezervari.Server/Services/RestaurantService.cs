@@ -3,6 +3,13 @@ using AplicatieRezervari.Server.DTOs;
 using AplicatieRezervari.Server.Models;
 using AplicatieRezervari.Server.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AplicatieRezervari.Server.Services
 {
@@ -199,6 +206,210 @@ namespace AplicatieRezervari.Server.Services
                 remainingCapacity -= tableCapacity;
                 tableNumber++;
             }
+        }
+        public async Task<IEnumerable<EventTypeDto>> GetEventTypesAsync()
+        {
+            return await _context.EventTypes
+                .Where(e => e.IsActive)
+                .OrderBy(e => e.Name)
+                .Select(e => new EventTypeDto
+                {
+                    Id = e.Id,
+                    Code = e.Code,
+                    Name = e.Name,
+                    Description = e.Description
+                })
+                .ToListAsync();
+        }
+
+        public async Task<RestaurantEventSettingsDto> GetMyEventOptionsAsync(string managerId)
+        {
+            var restaurant = await _context.Restaurants
+                .Include(r => r.EventOptions)
+                    .ThenInclude(e => e.EventType)
+                .FirstOrDefaultAsync(r => r.ManagerId == managerId);
+
+            if (restaurant == null)
+            {
+                throw new ArgumentException("Restaurantul nu exista.");
+            }
+
+            var eventTypes = await _context.EventTypes
+                .Where(e => e.IsActive)
+                .OrderBy(e => e.Name)
+                .ToListAsync();
+
+            var eventOptions = eventTypes.Select(eventType =>
+            {
+                var option = restaurant.EventOptions
+                    .FirstOrDefault(o => o.EventTypeId == eventType.Id);
+
+                return new RestaurantEventOptionDto
+                {
+                    Id = option?.Id ?? Guid.Empty,
+                    EventTypeId = eventType.Id,
+                    EventTypeCode = eventType.Code,
+                    EventTypeName = eventType.Name,
+                    IsEnabled = option?.IsEnabled ?? false,
+                    PricePerPerson = option?.PricePerPerson ?? 0,
+                    MinPeople = option?.MinPeople ?? 1,
+                    MaxPeople = option?.MaxPeople,
+                    Details = option?.Details
+                };
+            }).ToList();
+
+            return new RestaurantEventSettingsDto
+            {
+                AcceptsEvents = restaurant.AcceptsEvents,
+                EventOptions = eventOptions
+            };
+        }
+        public async Task UpdateMyEventOptionsAsync(string managerId, UpdateRestaurantEventsDto dto)
+        {
+            var restaurant = await _context.Restaurants
+                .Include(r => r.EventOptions)
+                .FirstOrDefaultAsync(r => r.ManagerId == managerId);
+
+            if (restaurant == null)
+            {
+                throw new ArgumentException("Restaurantul nu exista.");
+            }
+
+            restaurant.AcceptsEvents = dto.AcceptsEvents;
+
+            foreach (var optionDto in dto.EventOptions)
+            {
+                var eventTypeExists = await _context.EventTypes
+                    .AnyAsync(e => e.Id == optionDto.EventTypeId && e.IsActive);
+
+                if (!eventTypeExists)
+                {
+                    continue;
+                }
+
+                var existingOption = restaurant.EventOptions
+                    .FirstOrDefault(o => o.EventTypeId == optionDto.EventTypeId);
+
+                if (existingOption == null)
+                {
+                    existingOption = new RestaurantEventOption
+                    {
+                        Id = Guid.NewGuid(),
+                        RestaurantId = restaurant.Id,
+                        EventTypeId = optionDto.EventTypeId
+                    };
+
+                    _context.RestaurantEventOptions.Add(existingOption);
+                }
+
+                existingOption.IsEnabled = dto.AcceptsEvents && optionDto.IsEnabled;
+                existingOption.PricePerPerson = optionDto.PricePerPerson;
+                existingOption.MinPeople = optionDto.MinPeople;
+                existingOption.MaxPeople = optionDto.MaxPeople;
+                existingOption.Details = optionDto.Details;
+            }
+
+            if (!dto.AcceptsEvents)
+            {
+                foreach (var option in restaurant.EventOptions)
+                {
+                    option.IsEnabled = false;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        public async Task<IEnumerable<EventRestaurantListingDto>> GetEventRestaurantsAsync(
+        Guid? cityId,
+        Guid? eventTypeId,
+        int? numberOfPeople,
+        decimal? maxPricePerPerson)
+        {
+            var restaurants = await _context.Restaurants
+                .Include(r => r.City)
+                .Include(r => r.EventOptions)
+                    .ThenInclude(option => option.EventType)
+                .Where(r => r.AcceptsEvents)
+                .ToListAsync();
+
+            if (cityId.HasValue)
+            {
+                restaurants = restaurants
+                    .Where(r => r.CityId == cityId.Value)
+                    .ToList();
+            }
+
+            var result = restaurants
+                .Select(restaurant =>
+                {
+                    var enabledOptions = restaurant.EventOptions
+                        .Where(option => option.IsEnabled && option.EventType.IsActive)
+                        .ToList();
+
+                    if (eventTypeId.HasValue)
+                    {
+                        enabledOptions = enabledOptions
+                            .Where(option => option.EventTypeId == eventTypeId.Value)
+                            .ToList();
+                    }
+
+                    if (numberOfPeople.HasValue)
+                    {
+                        enabledOptions = enabledOptions
+                            .Where(option =>
+                                numberOfPeople.Value >= option.MinPeople &&
+                                (!option.MaxPeople.HasValue || numberOfPeople.Value <= option.MaxPeople.Value))
+                            .ToList();
+                    }
+
+                    if (maxPricePerPerson.HasValue)
+                    {
+                        enabledOptions = enabledOptions
+                            .Where(option => option.PricePerPerson <= maxPricePerPerson.Value)
+                            .ToList();
+                    }
+
+                    if (!enabledOptions.Any())
+                    {
+                        return null;
+                    }
+
+                    return new EventRestaurantListingDto
+                    {
+                        Id = restaurant.Id,
+                        Name = restaurant.Name,
+                        Address = restaurant.Address,
+                        Description = restaurant.Description,
+                        CityId = restaurant.CityId,
+                        CityName = restaurant.City?.Name ?? string.Empty,
+                        Capacity = restaurant.Capacity,
+                        AverageBudget = restaurant.AverageBudget,
+                        Image1Url = restaurant.Image1Url,
+                        Image2Url = restaurant.Image2Url,
+                        Image3Url = restaurant.Image3Url,
+                        MinEventPricePerPerson = enabledOptions.Min(option => option.PricePerPerson),
+
+                        EventOptions = enabledOptions
+                            .OrderBy(option => option.PricePerPerson)
+                            .Select(option => new RestaurantEventOptionPublicDto
+                            {
+                                EventTypeId = option.EventTypeId,
+                                EventTypeCode = option.EventType.Code,
+                                EventTypeName = option.EventType.Name,
+                                PricePerPerson = option.PricePerPerson,
+                                MinPeople = option.MinPeople,
+                                MaxPeople = option.MaxPeople,
+                                Details = option.Details
+                            })
+                            .ToList()
+                    };
+                })
+                .Where(dto => dto != null)
+                .Cast<EventRestaurantListingDto>()
+                .OrderBy(dto => dto.MinEventPricePerPerson)
+                .ToList();
+
+            return result;
         }
         private async Task<string?[]> SaveImagesToFolderAsync(RestaurantSetupInput input)
         {

@@ -17,6 +17,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RestaurantCuisine> RestaurantCuisines { get; set; } = default!;
     public DbSet<Review> Reviews { get; set; } = default!;
     public DbSet<RestaurantTable> RestaurantTables { get; set; } = default!;
+    public DbSet<EventType> EventTypes { get; set; } = default!;
+    public DbSet<RestaurantEventOption> RestaurantEventOptions { get; set; } = default!; 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -52,5 +54,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(rc => rc.CuisineType)
             .WithMany(c => c.RestaurantCuisines)
             .HasForeignKey(rc => rc.CuisineTypeId);
+
+        modelBuilder.Entity<RestaurantEventOption>()
+            .Property(e => e.PricePerPerson)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<RestaurantEventOption>()
+            .HasOne(e => e.Restaurant)
+            .WithMany(r => r.EventOptions)
+            .HasForeignKey(e => e.RestaurantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RestaurantEventOption>()
+            .HasOne(e => e.EventType)
+            .WithMany(t => t.RestaurantEventOptions)
+            .HasForeignKey(e => e.EventTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<RestaurantEventOption>()
+            .HasIndex(e => new { e.RestaurantId, e.EventTypeId })
+            .IsUnique();
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.EventType)
+            .WithMany(e => e.Reservations)
+            .HasForeignKey(r => r.EventTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

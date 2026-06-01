@@ -30,7 +30,9 @@ public class Restaurant
     public decimal? BaptismMenuPricePerPerson { get; set; }
     public decimal? AnniversaryMenuPricePerPerson { get; set; }
     public int? MinPeopleForEvents { get; set; }
+    public virtual ICollection<RestaurantEventOption> EventOptions { get; set; } = new List<RestaurantEventOption>();
 
+    
     public TimeSpan OpeningTime { get; set; } 
     public TimeSpan ClosingTime { get; set; } 
     public virtual ICollection<RestaurantCuisine> RestaurantCuisines { get; set; } = new List<RestaurantCuisine>();

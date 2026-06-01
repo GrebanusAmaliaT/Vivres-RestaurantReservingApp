@@ -4,8 +4,9 @@ namespace AplicatieRezervari.Server.DTOs
 {
     public class CreateReservationDto
     {
-        public Guid RestaurantId { get; set; }
-        public DateTime ReservationDate { get; set; }
+        [Required] public Guid RestaurantId { get; set; }
+
+        [Required] public DateTime ReservationDate { get; set; }
 
         [Range(1, 100, ErrorMessage = "Numarul de persoane trebuie sa fie intre 1 si 100.")]
         public int NumberOfPeople { get; set; }
@@ -13,6 +14,7 @@ namespace AplicatieRezervari.Server.DTOs
         public string? SpecialRequests { get; set; }
 
         public bool IsEvent { get; set; }
+        public Guid? EventTypeId { get; set; }
         public string? EventMenuType { get; set; }
     }
 }

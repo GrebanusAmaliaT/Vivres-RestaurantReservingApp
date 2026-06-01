@@ -66,3 +66,67 @@ export interface ReservationDto {
     estimatedTotalCost: number;
     createdAt: string;
 }
+
+export interface EventTypeDto {
+    id: string;
+    code: string;
+    name: string;
+    description?: string | null;
+}
+
+export interface RestaurantEventOptionDto {
+    id: string;
+    eventTypeId: string;
+    eventTypeCode: string;
+    eventTypeName: string;
+    isEnabled: boolean;
+    pricePerPerson: number;
+    minPeople: number;
+    maxPeople?: number | null;
+    details?: string | null;
+}
+
+export interface RestaurantEventSettingsDto {
+    acceptsEvents: boolean;
+    eventOptions: RestaurantEventOptionDto[];
+}
+
+export interface UpdateRestaurantEventOptionDto {
+    eventTypeId: string;
+    isEnabled: boolean;
+    pricePerPerson: number;
+    minPeople: number;
+    maxPeople?: number | null;
+    details?: string | null;
+}
+
+export interface UpdateRestaurantEventsDto {
+    acceptsEvents: boolean;
+    eventOptions: UpdateRestaurantEventOptionDto[];
+}
+
+export interface RestaurantEventOptionPublicDto {
+    eventTypeId: string;
+    eventTypeCode: string;
+    eventTypeName: string;
+    pricePerPerson: number;
+    minPeople: number;
+    maxPeople?: number | null;
+    details?: string | null;
+}
+
+export interface EventRestaurantListingDto {
+    id: string;
+    name: string;
+    address: string;
+    description: string;
+    cityId: string;
+    cityName: string;
+    capacity: number;
+    averageBudget: number;
+    image1Url?: string | null;
+    image2Url?: string | null;
+    image3Url?: string | null;
+    minEventPricePerPerson: number;
+    eventOptions: RestaurantEventOptionPublicDto[];
+}

@@ -3,10 +3,11 @@ import { LandingPage } from './pages/LandingPage';
 import { AuthPage } from './pages/Auth/AuthPage';
 import { ManagerProfileSetup } from './pages/manager/tsx/ManagerProfileSetup';
 import { ManagerDashboard } from './pages/manager/tsx/ManagerDashboard';
-
+import { ManagerEventManagementPage } from './pages/manager/tsx/ManagerEventManagementPage';
 import { RestaurantListingPage } from './pages/client/tsx/RestaurantListingPage';
 import { ReservationPage } from './pages/client/tsx/ReservationPage';
 import { RestaurantDto } from './types/index';
+import { EventRestaurantListingPage } from './pages/client/tsx/EventRestaurantListingPage';
 
 type AppView =
     | 'Landing'
@@ -15,7 +16,9 @@ type AppView =
     | 'ManagerDashboard'
     | 'RestaurantListing'
     | 'Reservation'
-    | 'Plan your event';
+    | 'Plan your event'
+    | 'ManagerEvents'
+    | 'EventRestaurantListing';
 
 export default function App() {
     const [role, setRole] = useState<string | null>(() => localStorage.getItem('vivres_role'));
@@ -39,7 +42,7 @@ export default function App() {
             return;
         }
 
-        setCurrentView('Plan your event');
+        setCurrentView('EventRestaurantListing');
     };
 
     const handleAuthSuccess = (userRole: string, profileCompletedBackend?: boolean) => {
@@ -125,7 +128,8 @@ export default function App() {
                         userRole={role}
                         onLogout={handleLogout}
                         onBack={() => setCurrentView('Landing')}
-                        onEditProfileClick={() => setCurrentView('ManagerSetup')}
+                    onEditProfileClick={() => setCurrentView('ManagerSetup')}
+                    onManageEventsClick={() => setCurrentView('ManagerEvents')}
                     />
 
             )}
@@ -152,13 +156,20 @@ export default function App() {
                 />
             )}
 
-            {currentView === 'Plan your event' && (
-                    <div className="container py-5 text-start">
-                        <h2 className="h3 fw-bold text-capitalize">// Plan your event</h2>
-                        <p className="text-muted">
-                            Aici vom implementa ulterior partea pentru evenimente.
-                        </p>
-                    </div>
+            {currentView === 'ManagerEvents' && (
+                <ManagerEventManagementPage
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('ManagerDashboard')}
+                />
+            )}
+
+            {currentView === 'EventRestaurantListing' && (
+                <EventRestaurantListingPage
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('Landing')}
+                />
             )}
         </div>
     );

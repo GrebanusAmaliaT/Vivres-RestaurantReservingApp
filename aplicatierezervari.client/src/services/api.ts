@@ -1,4 +1,13 @@
-import { RestaurantDto, CityDto, CreateReservationDto, ReservationDto} from '../types/index';
+import {
+    RestaurantDto,
+    CityDto,
+    CreateReservationDto,
+    ReservationDto,
+    RestaurantEventSettingsDto,
+    UpdateRestaurantEventsDto,
+    EventRestaurantListingDto,
+    EventTypeDto
+} from '../types/index';
 
 const API_BASE_URL = 'https://localhost:7065/api';
 
@@ -204,6 +213,99 @@ export const apiService = {
             const errorText = await response.text();
             console.error('Update reservation status error:', errorText);
             throw new Error(errorText || 'Failed to update reservation status');
+        }
+    },
+
+    async getManagerEventSettings(): Promise<RestaurantEventSettingsDto> {
+        const response = await fetch(`${API_BASE_URL}/Restaurants/my-event-options`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        const responseText = await response.text();
+
+        if (!response.ok) {
+            console.error('Get event settings error:', responseText);
+            throw new Error(responseText || 'Failed to load event settings');
+        }
+
+        return JSON.parse(responseText);
+    },
+
+    async updateManagerEventSettings(data: UpdateRestaurantEventsDto): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/Restaurants/event-options`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        const responseText = await response.text();
+
+        if (!response.ok) {
+            console.error('Update event settings error:', responseText);
+            throw new Error(responseText || 'Failed to update event settings');
+        }
+    },
+
+    async getEventTypes(): Promise<EventTypeDto[]> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Restaurants/event-types`, {
+                method: 'GET',
+                headers: getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load event types');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error in getEventTypes:', error);
+            return [];
+        }
+    },
+
+    async getEventRestaurants(
+        cityId?: string,
+        eventTypeId?: string,
+        numberOfPeople?: number,
+        maxPricePerPerson?: number
+    ): Promise<EventRestaurantListingDto[]> {
+        try {
+            const queryParams = new URLSearchParams();
+
+            if (cityId) {
+                queryParams.append('cityId', cityId);
+            }
+
+            if (eventTypeId) {
+                queryParams.append('eventTypeId', eventTypeId);
+            }
+
+            if (numberOfPeople && numberOfPeople > 0) {
+                queryParams.append('numberOfPeople', numberOfPeople.toString());
+            }
+
+            if (maxPricePerPerson && maxPricePerPerson > 0) {
+                queryParams.append('maxPricePerPerson', maxPricePerPerson.toString());
+            }
+
+            const response = await fetch(
+                `${API_BASE_URL}/Restaurants/events?${queryParams.toString()}`,
+                {
+                    method: 'GET',
+                    headers: getAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to load event restaurants');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error in getEventRestaurants:', error);
+            return [];
         }
     }
 

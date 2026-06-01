@@ -29,5 +29,9 @@
         public decimal EstimatedTotalCost { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+
+        public Guid? EventTypeId { get; set; }
+        public string? EventTypeName { get; set; }
     }
 }

@@ -110,6 +110,79 @@ namespace AplicatieRezervari.Server.Data
                     });
                 }
             }
+            var eventTypes = new List<EventType>
+            {
+                new EventType
+                {
+                    Code = "wedding",
+                    Name = "Wedding",
+                    Description = "Weddings, large formal receptions and wedding dinners"
+                },
+                new EventType
+                {
+                    Code = "baptism",
+                    Name = "Baptism",
+                    Description = "Baptism parties and family celebrations"
+                },
+                new EventType
+                {
+                    Code = "anniversary",
+                    Name = "Anniversary",
+                    Description = "Anniversaries and birthday celebrations"
+                },
+                new EventType
+                {
+                    Code = "corporate",
+                    Name = "Corporate Event",
+                    Description = "Business dinners, team events and company parties"
+                },
+                new EventType
+                {
+                    Code = "memorial",
+                    Name = "Memorial Meal",
+                    Description = "Memorial meals and commemorative gatherings"
+                },
+                new EventType
+                {
+                    Code = "engagement",
+                    Name = "Engagement Party",
+                    Description = "Engagement parties and proposal celebrations"
+                },
+                new EventType
+                {
+                    Code = "graduation",
+                    Name = "Graduation Party",
+                    Description = "Graduation dinners and student celebrations"
+                },
+                new EventType
+                {
+                    Code = "private_party",
+                    Name = "Private Party",
+                    Description = "Private parties and social gatherings"
+                },
+                new EventType
+                {
+                    Code = "conference",
+                    Name = "Conference",
+                    Description = "Conferences, workshops and professional meetings"
+                },
+                new EventType
+                {
+                    Code = "holiday_party",
+                    Name = "Holiday Party",
+                    Description = "Christmas, New Year and seasonal events"
+                }
+            };
+
+            foreach (var eventType in eventTypes)
+            {
+                bool exists = context.EventTypes.Any(e => e.Code == eventType.Code);
+
+                if (!exists)
+                {
+                    context.EventTypes.Add(eventType);
+                }
+            }
 
             await context.SaveChangesAsync();
         }

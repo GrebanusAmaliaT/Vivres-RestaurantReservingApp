@@ -9,6 +9,7 @@ import { Footer } from '../../../components/Footer';
 interface ManagerDashboardProps {
     restaurantName: string;
     onEditProfileClick: () => void;
+    onManageEventsClick: () => void;
     userRole: string | null;
     onLogout: () => void;
     onBack: () => void;
@@ -17,6 +18,7 @@ interface ManagerDashboardProps {
 export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
     restaurantName,
     onEditProfileClick,
+    onManageEventsClick,
     userRole,
     onLogout,
     onBack
@@ -140,7 +142,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                         className="btn btn-outline-dark font-monospace text-uppercase shadow-none edit-profile-btn"
                     >
                         Editeaza profilul
-                    </button>
+                        </button>
+
+                     <button
+                            onClick={onManageEventsClick}
+                            className="btn btn-outline-dark font-monospace text-uppercase shadow-none btn-sm"
+                        >
+                            Configureaza evenimente
+                     </button>
                 </div>
             </div>
 
