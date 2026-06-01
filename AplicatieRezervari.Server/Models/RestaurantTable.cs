@@ -8,19 +8,15 @@ namespace AplicatieRezervari.Server.Models
         public Guid Id { get; set; }
 
         [Required]
-        public string TableNumber { get; set; }
+        public string TableNumber { get; set; } = string.Empty;
 
         [Required]
         public int Capacity { get; set; }
 
         public Guid RestaurantId { get; set; }
-        public virtual Restaurant Restaurant { get; set; }
 
-        public virtual ICollection<Reservation> Reservations { get; set; }
+        public virtual Restaurant Restaurant { get; set; } = default!;
 
-        public RestaurantTable()
-        {
-            Reservations = new List<Reservation>();
-        }
+        public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

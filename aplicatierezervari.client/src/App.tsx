@@ -1,62 +1,57 @@
-﻿import * as React from 'react';
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { LandingPage } from './pages/LandingPage';
 import { AuthPage } from './pages/Auth/AuthPage';
-import { ManagerProfileSetup } from './pages/Auth/ManagerProfileSetup';
-import { ManagerDashboard } from './pages/ManagerDashboard';
+import { ManagerProfileSetup } from './pages/manager/tsx/ManagerProfileSetup';
+import { ManagerDashboard } from './pages/manager/tsx/ManagerDashboard';
 
-type AppView = 'Landing' | 'Book a table' | 'Plan your event' | 'Auth' | 'ManagerSetup' | 'ManagerDashboard';
+import { RestaurantListingPage } from './pages/client/tsx/RestaurantListingPage';
+import { ReservationPage } from './pages/client/tsx/ReservationPage';
+import { RestaurantDto } from './types/index';
 
-interface ReservationRequest {
-    id: number;
-    clientName: string;
-    clientPhone: string;
-    numberOfPersons: number;
-    date: string;
-    time: string;
-    eventType: 'table' | 'event';
-    notes?: string;
-    status: 'pending' | 'approved' | 'rejected';
-}
+type AppView =
+    | 'Landing'
+    | 'Auth'
+    | 'ManagerSetup'
+    | 'ManagerDashboard'
+    | 'RestaurantListing'
+    | 'Reservation'
+    | 'Plan your event';
 
 export default function App() {
     const [role, setRole] = useState<string | null>(() => localStorage.getItem('vivres_role'));
     const [hasProfile, setHasProfile] = useState<boolean>(() => localStorage.getItem('vivres_has_profile') === 'true');
     const [currentView, setCurrentView] = useState<AppView>('Landing');
-    const [reservations, setReservations] = useState<ReservationRequest[]>([]);
+    const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantDto | null>(null);
 
     useEffect(() => {
         if (role) {
             const lowRole = role.toLowerCase();
+
             if (lowRole === 'manager' || lowRole === 'restaurantmanager') {
                 setCurrentView(hasProfile ? 'ManagerDashboard' : 'ManagerSetup');
             }
         }
     }, [role, hasProfile]);
 
-    const handleUpdateStatus = (id: number, newStatus: 'approved' | 'rejected') => {
-        setReservations(prev =>
-            prev.map(res => res.id === id ? { ...res, status: newStatus } : res)
-        );
-    };
-
     const handleNavigation = (view: 'Book a table' | 'Plan your event') => {
-        setCurrentView(view);
+        if (view === 'Book a table') {
+            setCurrentView('RestaurantListing');
+            return;
+        }
+
+        setCurrentView('Plan your event');
     };
 
     const handleAuthSuccess = (userRole: string, profileCompletedBackend?: boolean) => {
         setRole(userRole);
         localStorage.setItem('vivres_role', userRole);
 
-        const isProfileComplete = profileCompletedBackend !== undefined
-            ? profileCompletedBackend
-            : localStorage.getItem('vivres_has_profile') === 'true';
+        const isProfileComplete = profileCompletedBackend === true;
 
         localStorage.setItem('vivres_has_profile', String(isProfileComplete));
         setHasProfile(isProfileComplete);
 
-        const normalizedRole = userRole.toLowerCase();
-        if (normalizedRole === 'restaurantmanager' || normalizedRole === 'manager') {
+        if (userRole === 'RestaurantManager' ) {
             setCurrentView(isProfileComplete ? 'ManagerDashboard' : 'ManagerSetup');
         } else {
             setCurrentView('Landing');
@@ -72,20 +67,29 @@ export default function App() {
     const handleLogout = () => {
         localStorage.removeItem('vivres_role');
         localStorage.removeItem('vivres_has_profile');
+        localStorage.removeItem('vivres_token');
+        localStorage.removeItem('vivres_city');
+        localStorage.removeItem('vivres_city_id');
+
         setRole(null);
         setHasProfile(false);
+        setSelectedRestaurant(null);
         setCurrentView('Landing');
     };
 
-    const isUserAManager = role?.toLowerCase() === 'manager' || role?.toLowerCase() === 'restaurantmanager';
+    const isUserAManager =
+        role?.toLowerCase() === 'manager' ||
+        role?.toLowerCase() === 'restaurantmanager';
 
     return (
         <div className="w-100 min-vh-screen" style={{ backgroundColor: '#ffffff' }}>
 
             {currentView === 'Auth' && (
                 <AuthPage
-                    currentLang="RO"
-                    onAuthSuccess={(rolePayload) => handleAuthSuccess(rolePayload)}
+                    //currentLang="RO"
+                    onAuthSuccess={(rolePayload, hasProfileCompleted) =>
+                        handleAuthSuccess(rolePayload, hasProfileCompleted)
+                    }
                     onBack={() => setCurrentView('Landing')}
                 />
             )}
@@ -106,47 +110,55 @@ export default function App() {
             )}
 
             {currentView === 'ManagerSetup' && (
-                <div>
-                    <div className="bg-dark text-end px-4 py-2">
-                        <button onClick={handleLogout} className="btn btn-link text-danger text-decoration-none shadow-none font-monospace text-uppercase btn-sm" style={{ fontSize: '11px' }}>
-                            Iesire Cont →
-                        </button>
-                    </div>
-                    <ManagerProfileSetup onSaveSuccess={handleProfileSaveSuccess} />
-                </div>
+                    <ManagerProfileSetup
+                        onSaveSuccess={handleProfileSaveSuccess}
+                        userRole={role}
+                        onLogout={handleLogout}
+                        onBack={hasProfile ? () => setCurrentView('ManagerDashboard') : undefined}
+                    />
             )}
 
             {currentView === 'ManagerDashboard' && (
-                <div>
-                    <div className="bg-dark text-end px-4 py-2">
-                        <button onClick={() => setCurrentView('Landing')} className="btn btn-link text-warning text-decoration-none shadow-none font-monospace text-uppercase btn-sm me-3" style={{ fontSize: '11px' }}>
-                            ← Vezi Site-ul Public
-                        </button>
-                        <button onClick={handleLogout} className="btn btn-link text-danger text-decoration-none shadow-none font-monospace text-uppercase btn-sm" style={{ fontSize: '11px' }}>
-                            Deconectare →
-                        </button>
-                    </div>
+
                     <ManagerDashboard
                         restaurantName="Restaurantul Tau Vivres"
-                        reservations={reservations}
-                        onUpdateStatus={handleUpdateStatus}
+                        userRole={role}
+                        onLogout={handleLogout}
+                        onBack={() => setCurrentView('Landing')}
                         onEditProfileClick={() => setCurrentView('ManagerSetup')}
                     />
-                </div>
+
             )}
 
-            {(currentView === 'Book a table' || currentView === 'Plan your event') && (
-                <div>
-                    <div className="bg-dark text-end px-4 py-2">
-                        <button onClick={() => setCurrentView('Landing')} className="btn btn-link text-warning text-decoration-none shadow-none font-monospace text-uppercase btn-sm" style={{ fontSize: '11px' }}>
-                            ← Inapoi la Acasa
-                        </button>
-                    </div>
+            {currentView === 'RestaurantListing' && (
+                <RestaurantListingPage
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('Landing')}
+                    onSelectRestaurant={(restaurant) => {
+                        setSelectedRestaurant(restaurant);
+                        setCurrentView('Reservation');
+                    }}
+                />
+            )}
+
+            {currentView === 'Reservation' && (
+                <ReservationPage
+                    restaurant={selectedRestaurant}
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('RestaurantListing')}
+                    onReservationSent={() => setCurrentView('RestaurantListing')}
+                />
+            )}
+
+            {currentView === 'Plan your event' && (
                     <div className="container py-5 text-start">
-                        <h2 className="h3 fw-bold text-capitalize">// {currentView}</h2>
-                        <p className="text-muted">Aici se vor lista restaurantele din baza de date filtrate dupa criteriul selectat.</p>
+                        <h2 className="h3 fw-bold text-capitalize">// Plan your event</h2>
+                        <p className="text-muted">
+                            Aici vom implementa ulterior partea pentru evenimente.
+                        </p>
                     </div>
-                </div>
             )}
         </div>
     );

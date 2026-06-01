@@ -1,0 +1,40 @@
+.profile-setup-max-width {
+    max-width: 900px;
+}
+
+.header-tracking-wider {
+    letter-spacing: 0.12em;
+}
+
+.setup-input-style {
+    border-radius: 10px;
+    border: 1px solid #d8d8d8;
+    background-color: #ffffff;
+}
+
+.section-title-style {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+}
+
+.catalog-box-bg {
+    background-color: #fafafa;
+}
+
+.facility-switch-card {
+    min-height: 58px;
+}
+
+.image-preview-box {
+    height: 150px;
+}
+
+.submit-profile-btn {
+    background-color: #8b6508;
+    border-color: #8b6508;
+}
+
+    .submit-profile-btn:hover {
+        background-color: #705206;
+        border-color: #705206;
+    }

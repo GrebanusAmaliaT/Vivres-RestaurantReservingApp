@@ -7,10 +7,7 @@ namespace AplicatieRezervari.Server.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
-
+        : base(options) { }
     public DbSet<Restaurant> Restaurants { get; set; } = default!;
     public DbSet<City> Cities { get; set; } = default!;
     public DbSet<Reservation> Reservations { get; set; } = default!;

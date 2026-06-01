@@ -9,7 +9,7 @@ export interface CityDto {
 }
 
 export interface AuthPageProps {
-    onAuthSuccess: (role: string) => void;
+    onAuthSuccess: (role: string, hasProfileCompleted?: boolean) => void;
     onBack: () => void;
 }
 
@@ -60,6 +60,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess, onBack }) => 
         try {
             if (isLogin) {
                 const response = await authService.login({ email, password });
+                console.log("LOGIN RESPONSE:", response);
 
                 localStorage.setItem('vivres_token', response.token);
                 localStorage.setItem('vivres_role', response.role);
@@ -68,7 +69,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess, onBack }) => 
                     saveCityInLocalStorage(response.cityId);
                 }
 
-                onAuthSuccess(response.role);
+                const hasProfileCompleted =
+                    response.hasProfileCompleted ??
+                    response.HasProfileCompleted ??
+                    false;
+
+                localStorage.setItem('vivres_has_profile', String(hasProfileCompleted));
+
+                if (response.cityId) {
+                    localStorage.setItem('vivres_city_id', response.cityId);
+
+                    const userCity = cities.find(c => c.id === response.cityId);
+                    if (userCity) {
+                        localStorage.setItem('vivres_city', userCity.name);
+                    }
+
+                }
+                onAuthSuccess(response.role, hasProfileCompleted);
             } else {
                 if (role === 'RestaurantManager' && !selectedCityId) {
                     setError('Selecteaza un oras pentru contul de restaurant.');

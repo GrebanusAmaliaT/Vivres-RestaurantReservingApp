@@ -3,13 +3,6 @@ using AplicatieRezervari.Server.DTOs;
 using AplicatieRezervari.Server.Models;
 using AplicatieRezervari.Server.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Hosting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AplicatieRezervari.Server.Services
 {
@@ -86,7 +79,18 @@ namespace AplicatieRezervari.Server.Services
             restaurant.Mood = input.Mood;
             restaurant.ExtraFacilities = input.OtherFacilities;
 
+            if (input.OpeningTime >= input.ClosingTime)
+            {
+                throw new ArgumentException("Ora de deschidere trebuie sa fie inaintea orei de inchidere.");
+            }
+
+            restaurant.OpeningTime = input.OpeningTime;
+            restaurant.ClosingTime = input.ClosingTime;
+            restaurant.DefaultReservationDurationInHours = input.DefaultReservationDurationInHours;
+
             var savedImageUrls = await SaveImagesToFolderAsync(input);
+
+            await EnsureDefaultTablesAsync(restaurant);
 
             if (!string.IsNullOrEmpty(savedImageUrls[0]))
             {
@@ -146,6 +150,56 @@ namespace AplicatieRezervari.Server.Services
             return new { message = "Restaurant setup completed successfully" };
         }
 
+        private async Task EnsureDefaultTablesAsync(Restaurant restaurant)
+        {
+            bool hasTables = await _context.RestaurantTables
+                .AnyAsync(t => t.RestaurantId == restaurant.Id);
+
+            if (hasTables)
+            {
+                return;
+            }
+
+            int remainingCapacity = restaurant.Capacity;
+            int tableNumber = 1;
+
+            while (remainingCapacity > 0)
+            {
+                int tableCapacity;
+
+                if (remainingCapacity >= 8)
+                {
+                    tableCapacity = 8;
+                }
+                else if (remainingCapacity >= 6)
+                {
+                    tableCapacity = 6;
+                }
+                else if (remainingCapacity >= 4)
+                {
+                    tableCapacity = 4;
+                }
+                else if (remainingCapacity >= 2)
+                {
+                    tableCapacity = 2;
+                }
+                else
+                {
+                    tableCapacity = 1;
+                }
+
+                _context.RestaurantTables.Add(new RestaurantTable
+                {
+                    Id = Guid.NewGuid(),
+                    RestaurantId = restaurant.Id,
+                    TableNumber = $"Masa {tableNumber}",
+                    Capacity = tableCapacity
+                });
+
+                remainingCapacity -= tableCapacity;
+                tableNumber++;
+            }
+        }
         private async Task<string?[]> SaveImagesToFolderAsync(RestaurantSetupInput input)
         {
             var savedImageUrls = new string?[3];
@@ -210,6 +264,9 @@ namespace AplicatieRezervari.Server.Services
             Latitude = r.Latitude,
             Longitude = r.Longitude,
 
+            OpeningTime = r.OpeningTime,
+            ClosingTime = r.ClosingTime,
+            DefaultReservationDurationInHours = r.DefaultReservationDurationInHours,
 
             Image1Url = r.Image1Url,
             Image2Url = r.Image2Url,

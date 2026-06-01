@@ -94,7 +94,6 @@ namespace AplicatieRezervari.Server.Data
                 "Loc de joaca pentru copii",
                 "Acces persoane cu dizabilitati",
                 "Pet friendly",
-                "Se accepta evenimente private"
             };
 
             foreach (var facilityName in facilityNames)

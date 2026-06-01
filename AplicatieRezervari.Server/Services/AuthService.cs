@@ -1,9 +1,11 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AplicatieRezervari.Server.Data;
 using AplicatieRezervari.Server.DTOs;
 using AplicatieRezervari.Server.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AplicatieRezervari.Server.Services;
@@ -14,17 +16,20 @@ public class AuthService : IAuthService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthService> _logger;
+    private readonly ApplicationDbContext _context;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         IConfiguration configuration,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        ApplicationDbContext context)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _logger = logger;
+        _context = context;
     }
 
     public async Task<AuthResultDto> RegisterAsync(RegisterDto registerDto)
@@ -66,13 +71,30 @@ public class AuthService : IAuthService
         _logger.LogInformation("Attempting login for email: {Email}", loginDto.Email);
 
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
+
         if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
         {
-            return new AuthResultDto { IsSuccess = false, Message = "Invalid email or password" };
+            return new AuthResultDto
+            {
+                IsSuccess = false,
+                Message = "Invalid email or password"
+            };
         }
 
         var userRoles = await _userManager.GetRolesAsync(user);
         var primaryRole = userRoles.FirstOrDefault() ?? "Client";
+
+        if (primaryRole == "RestaurantManager" || primaryRole == "Manager")
+        {
+            var hasRestaurantProfile = await _context.Restaurants
+                .AnyAsync(r => r.ManagerId == user.Id);
+
+            if (hasRestaurantProfile && !user.HasProfileCompleted)
+            {
+                user.HasProfileCompleted = true;
+                await _userManager.UpdateAsync(user);
+            }
+        }
 
         var token = GenerateJwtToken(user, primaryRole);
 
@@ -82,10 +104,10 @@ public class AuthService : IAuthService
             Token = token,
             Role = primaryRole,
             CityId = user.CityId,
-            Message = "Login successful"
+            Message = "Login successful",
+            HasProfileCompleted = user.HasProfileCompleted
         };
     }
-
     private string GenerateJwtToken(ApplicationUser user, string role)
     {
         var authClaims = new List<Claim>

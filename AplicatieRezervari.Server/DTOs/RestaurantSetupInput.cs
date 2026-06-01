@@ -24,5 +24,15 @@ namespace AplicatieRezervari.Server.DTOs
         public IFormFile? ImageFile1 { get; set; }
         public IFormFile? ImageFile2 { get; set; }
         public IFormFile? ImageFile3 { get; set; }
+
+
+        [Required]
+        public TimeSpan OpeningTime { get; set; }
+
+        [Required]
+        public TimeSpan ClosingTime { get; set; }
+
+        [Range(1.0, 2.5)]
+        public double DefaultReservationDurationInHours { get; set; } = 2;
     }
 }

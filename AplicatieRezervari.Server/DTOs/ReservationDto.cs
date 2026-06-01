@@ -3,13 +3,31 @@
     public class ReservationDto
     {
         public Guid Id { get; set; }
+
+        public Guid RestaurantId { get; set; }
+
+        public Guid? RestaurantTableId { get; set; }
+
         public DateTime ReservationDate { get; set; }
+
         public int NumberOfPeople { get; set; }
+
         public string? SpecialRequests { get; set; }
-        public string Status { get; set; }
-        public string RestaurantName { get; set; }
-        public string RestaurantAddress { get; set; }
-        public string UserEmail { get; set; }
+
+        public string Status { get; set; } = string.Empty;
+
+        public string Type { get; set; } = string.Empty;
+
+        public string? EventMenuType { get; set; }
+
+        public string RestaurantName { get; set; } = string.Empty;
+
+        public string RestaurantAddress { get; set; } = string.Empty;
+
+        public string UserEmail { get; set; } = string.Empty;
+
         public decimal EstimatedTotalCost { get; set; }
+
+        public DateTime CreatedAt { get; set; }
     }
 }

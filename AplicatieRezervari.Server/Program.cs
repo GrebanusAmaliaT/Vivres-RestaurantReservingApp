@@ -18,20 +18,19 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // 1. Configurare Bază de Date
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        // Register Repositories
         builder.Services.AddScoped<ICityRepository, CityRepository>();
-        builder.Services.AddScoped<IRestaurantRepository, RestaurantRepository>();
-
-        // Register Services
         builder.Services.AddScoped<ICityService, CityService>();
-        builder.Services.AddScoped<IRestaurantService, RestaurantService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
 
-        // 2. Configurare ASP.NET Core Identity
+        builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+        builder.Services.AddScoped<IReservationService, ReservationService>();
+
+        builder.Services.AddScoped<IRestaurantRepository, RestaurantRepository>();
+        builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.Password.RequireDigit = false;
@@ -43,7 +42,6 @@ public class Program
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
-        // Add JWT Authentication
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -63,19 +61,17 @@ public class Program
             };
         });
 
-        // 3. Configurare CORS pentru React (Vite) - ACTUALIZAT CU PORTUL CORECT
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowReactApp", policy =>
             {
-                policy.WithOrigins("https://localhost:57278", "http://localhost:57278") // Schimbat din 5173 în 57278
+                policy.WithOrigins("https://localhost:57278", "http://localhost:57278") 
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
             });
         });
 
-        // 4. Adăugare Servicii Core (.NET Controllers & Swagger)
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -86,8 +82,6 @@ public class Program
         var app = builder.Build();
 
         app.UseMiddleware<ExceptionMiddleware>();
-
-        // 5. Configurare Pipeline pentru HTTP Request
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -98,18 +92,12 @@ public class Program
         app.UseDefaultFiles();
         app.UseStaticFiles();
 
-        // --- ATENȚIE LA ORDINEA DE MAI JOS ---
-
-        // CORS trebuie să fie primul pentru ca browserul să accepte cererile de la React
         app.UseCors("AllowReactApp");
 
-        // Autentificarea verifică cine este utilizatorul
         app.UseAuthentication();
 
-        // Autorizarea verifică dacă utilizatorul are dreptul să acceseze resursa
         app.UseAuthorization();
 
-        // Rutele se mapează abia după filtrele de securitate
         app.MapControllers();
         app.MapFallbackToFile("/index.html");
 

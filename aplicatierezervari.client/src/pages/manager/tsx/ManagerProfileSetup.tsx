@@ -1,8 +1,14 @@
 ﻿import * as React from 'react';
 import { useState, useEffect } from 'react';
+import '../css/ManagerProfileSetup.css';
 
+import { Navbar } from '../../../components/Navbar';
+import { Footer } from '../../../components/Footer';
 interface ManagerProfileSetupProps {
     onSaveSuccess: () => void;
+    userRole: string | null;
+    onLogout: () => void;
+    onBack?: () => void;
 }
 
 type TabType = 'general' | 'filters' | 'location' | 'images';
@@ -11,7 +17,12 @@ interface CatalogItemDto {
     name: string;
 }
 
-export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSaveSuccess }) => {
+export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({
+    onSaveSuccess,
+    userRole,
+    onLogout,
+    onBack
+}) => {
     const [activeTab, setActiveTab] = useState<TabType>('general');
     const [loading, setLoading] = useState<boolean>(true);
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -26,6 +37,9 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
         description: '',
         averageBudget: 0,
         capacity: 50,
+        openingTime: '08:00',
+        closingTime: '18:00',
+        defaultReservationDurationInHours: 2,
         address: '',
         latitude: '44.4268',
         longitude: '26.1025',
@@ -86,6 +100,9 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                         description: data.description || '',
                         averageBudget: data.averageBudget || 0,
                         capacity: data.capacity || 50,
+                        openingTime: data.openingTime ? data.openingTime.substring(0, 5) : '08:00',
+                        closingTime: data.closingTime ? data.closingTime.substring(0, 5) : '18:00',
+                        defaultReservationDurationInHours: data.defaultReservationDurationInHours || 2,
                         address: data.address || '',
                         latitude: data.latitude?.toString() || '44.4268',
                         longitude: data.longitude?.toString() || '26.1025',
@@ -116,10 +133,26 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
         loadCatalogAndProfile();
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleInputChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => {
         const { name, value } = e.target;
-        const parsedValue = name === 'mood' ? parseInt(value, 10) : value;
-        setFormData(prev => ({ ...prev, [name]: parsedValue }));
+
+        let parsedValue: string | number = value;
+
+        if (
+            name === 'mood' ||
+            name === 'capacity' ||
+            name === 'averageBudget' ||
+            name === 'defaultReservationDurationInHours'
+        ) {
+            parsedValue = Number(value);
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            [name]: parsedValue
+        }));
     };
 
     const handleDynamicCheckboxChange = (field: 'selectedFacilityIds' | 'selectedCuisineIds', id: string, checked: boolean) => {
@@ -163,8 +196,13 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
         dataToSend.append('Description', formData.description);
         dataToSend.append('Capacity', formData.capacity.toString());
         dataToSend.append('AverageBudget', formData.averageBudget.toString());
+        dataToSend.append('OpeningTime', `${formData.openingTime}:00`);
+        dataToSend.append('ClosingTime', `${formData.closingTime}:00`);
+        dataToSend.append(
+            'DefaultReservationDurationInHours',
+            formData.defaultReservationDurationInHours.toString()
+        );
 
-       
         dataToSend.append('Latitude', formData.latitude);
         dataToSend.append('Longitude', formData.longitude);
         dataToSend.append('Mood', formData.mood.toString());
@@ -208,17 +246,6 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
             : 'text-secondary bg-transparent'
         }`;
 
-    const inputStyle: React.CSSProperties = {
-        borderRadius: '10px',
-        border: '1px solid #d8d8d8',
-        backgroundColor: '#ffffff'
-    };
-
-    const sectionTitleStyle: React.CSSProperties = {
-        fontSize: '12px',
-        letterSpacing: '0.08em'
-    };
-
     if (loading) {
         return (
             <div className="container py-5 text-center">
@@ -231,12 +258,15 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
     }
 
     return (
-        <div className="container py-5 text-start" style={{ maxWidth: '900px' }}>
+        <div className="manager-profile-page">
+            <Navbar
+                userRole={userRole}
+                onLogout={onLogout}
+                onBack={onBack}
+            />
+            <div className="container py-5 text-start profile-setup-max-width">
             <div className="text-center mb-5">
-                <span
-                    className="text-uppercase font-monospace text-muted small"
-                    style={{ letterSpacing: '0.12em' }}
-                >
+                <span className="text-uppercase font-monospace text-muted small header-tracking-wider">
                     Restaurant profile
                 </span>
 
@@ -288,7 +318,7 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                     {activeTab === 'general' && (
                         <div>
                             <div className="mb-4">
-                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1" style={sectionTitleStyle}>
+                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1 section-title-style">
                                     Informatii generale
                                 </h3>
                                 <p className="text-muted small mb-0">
@@ -297,14 +327,13 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                     Nume restaurant
                                 </label>
                                 <input
                                     type="text"
                                     name="name"
-                                    className="form-control shadow-none py-2"
-                                    style={inputStyle}
+                                    className="form-control shadow-none py-2 setup-input-style"
                                     value={formData.name}
                                     onChange={handleInputChange}
                                     required
@@ -313,14 +342,13 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
 
                             <div className="row g-3 mb-4">
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                    <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                         Buget mediu / persoana
                                     </label>
                                     <input
                                         type="number"
                                         name="averageBudget"
-                                        className="form-control shadow-none py-2"
-                                        style={inputStyle}
+                                        className="form-control shadow-none py-2 setup-input-style"
                                         value={formData.averageBudget}
                                         onChange={handleInputChange}
                                         required
@@ -328,29 +356,75 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                                 </div>
 
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                    <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                         Capacitate maxima
                                     </label>
                                     <input
                                         type="number"
                                         name="capacity"
-                                        className="form-control shadow-none py-2"
-                                        style={inputStyle}
+                                        className="form-control shadow-none py-2 setup-input-style"
                                         value={formData.capacity}
                                         onChange={handleInputChange}
                                         required
                                     />
                                 </div>
+
+                                <div className="row g-3 mb-4">
+                                    <div className="col-md-4">
+                                        <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
+                                            Ora deschidere
+                                        </label>
+                                        <input
+                                            type="time"
+                                            name="openingTime"
+                                            className="form-control shadow-none py-2 setup-input-style"
+                                            value={formData.openingTime}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="col-md-4">
+                                        <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
+                                            Ora inchidere
+                                        </label>
+                                        <input
+                                            type="time"
+                                            name="closingTime"
+                                            className="form-control shadow-none py-2 setup-input-style"
+                                            value={formData.closingTime}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="col-md-4">
+                                        <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
+                                            Durata rezervare
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="defaultReservationDurationInHours"
+                                            className="form-control shadow-none py-2 setup-input-style"
+                                            value={formData.defaultReservationDurationInHours}
+                                            onChange={handleInputChange}
+                                            min={0.5}
+                                            max={8}
+                                            step={0.5}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                     Descriere scurta
                                 </label>
                                 <textarea
                                     name="description"
-                                    className="form-control shadow-none"
-                                    style={inputStyle}
+                                    className="form-control shadow-none setup-input-style"
                                     rows={5}
                                     value={formData.description}
                                     onChange={handleInputChange}
@@ -373,7 +447,7 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                     {activeTab === 'filters' && (
                         <div>
                             <div className="mb-4">
-                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1" style={sectionTitleStyle}>
+                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1 section-title-style">
                                     Filtre si preferinte
                                 </h3>
                                 <p className="text-muted small mb-0">
@@ -382,13 +456,12 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                     Stil / atmosfera
                                 </label>
                                 <select
                                     name="mood"
-                                    className="form-select shadow-none py-2"
-                                    style={inputStyle}
+                                    className="form-select shadow-none py-2 setup-input-style"
                                     value={formData.mood}
                                     onChange={handleInputChange}
                                 >
@@ -402,11 +475,11 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-uppercase text-muted mb-2" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted mb-2 section-title-style">
                                     Tipuri de bucatarie
                                 </label>
 
-                                <div className="row g-2 border rounded-4 p-3 m-0" style={{ backgroundColor: '#fafafa' }}>
+                                <div className="row g-2 border rounded-4 p-3 m-0 catalog-box-bg">
                                     {globalCuisines.map(cuisine => (
                                         <div className="col-6 col-md-4" key={cuisine.id}>
                                             <div className="form-check bg-white border rounded-3 px-3 py-2 h-100">
@@ -432,17 +505,14 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-uppercase text-muted mb-2" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted mb-2 section-title-style">
                                     Facilitati standard
                                 </label>
 
-                                <div className="row g-3 m-0 p-3 border rounded-4" style={{ backgroundColor: '#fafafa' }}>
+                                <div className="row g-3 m-0 p-3 border rounded-4 catalog-box-bg">
                                     {globalFacilities.map(facility => (
                                         <div className="col-md-6" key={facility.id}>
-                                            <div
-                                                className="form-check form-switch bg-white border rounded-3 p-3 h-100 d-flex align-items-center"
-                                                style={{ minHeight: '58px' }}
-                                            >
+                                            <div className="form-check form-switch bg-white border rounded-3 p-3 h-100 d-flex align-items-center facility-switch-card">
                                                 <input
                                                     className="form-check-input shadow-none me-3"
                                                     type="checkbox"
@@ -465,13 +535,12 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                             </div>
 
                             <div className="mb-3 p-3 border rounded-4 bg-white">
-                                <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                     Alte facilitati
                                 </label>
                                 <textarea
                                     name="otherFacilities"
-                                    className="form-control shadow-none small"
-                                    style={inputStyle}
+                                    className="form-control shadow-none small setup-input-style"
                                     rows={3}
                                     value={formData.otherFacilities}
                                     onChange={handleInputChange}
@@ -502,7 +571,7 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                     {activeTab === 'location' && (
                         <div>
                             <div className="mb-4">
-                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1" style={sectionTitleStyle}>
+                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1 section-title-style">
                                     Locatie
                                 </h3>
                                 <p className="text-muted small mb-0">
@@ -511,14 +580,13 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                     Adresa completa
                                 </label>
                                 <input
                                     type="text"
                                     name="address"
-                                    className="form-control shadow-none py-2"
-                                    style={inputStyle}
+                                    className="form-control shadow-none py-2 setup-input-style"
                                     value={formData.address}
                                     onChange={handleInputChange}
                                     required
@@ -527,14 +595,13 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
 
                             <div className="row g-3 mb-4">
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                    <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                         Latitudine
                                     </label>
                                     <input
                                         type="text"
                                         name="latitude"
-                                        className="form-control shadow-none font-monospace py-2"
-                                        style={inputStyle}
+                                        className="form-control shadow-none font-monospace py-2 setup-input-style"
                                         value={formData.latitude}
                                         onChange={handleInputChange}
                                         required
@@ -542,14 +609,13 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                                 </div>
 
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-bold text-uppercase text-muted" style={sectionTitleStyle}>
+                                    <label className="form-label small fw-bold text-uppercase text-muted section-title-style">
                                         Longitudine
                                     </label>
                                     <input
                                         type="text"
                                         name="longitude"
-                                        className="form-control shadow-none font-monospace py-2"
-                                        style={inputStyle}
+                                        className="form-control shadow-none font-monospace py-2 setup-input-style"
                                         value={formData.longitude}
                                         onChange={handleInputChange}
                                         required
@@ -580,7 +646,7 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                     {activeTab === 'images' && (
                         <div>
                             <div className="mb-4">
-                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1" style={sectionTitleStyle}>
+                                <h3 className="h6 fw-bold text-uppercase text-dark mb-1 section-title-style">
                                     Galerie foto
                                 </h3>
                                 <p className="text-muted small mb-0">
@@ -596,10 +662,7 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                                     return (
                                         <div className="col-md-4" key={index}>
                                             <div className="border rounded-4 p-3 bg-white h-100">
-                                                <div
-                                                    className="border rounded-3 bg-light d-flex align-items-center justify-content-center overflow-hidden mb-3"
-                                                    style={{ height: '150px' }}
-                                                >
+                                                <div className="border rounded-3 bg-light d-flex align-items-center justify-content-center overflow-hidden mb-3 image-preview-box">
                                                     {previews[previewKey] ? (
                                                         <img
                                                             src={previews[previewKey]}
@@ -637,11 +700,7 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
 
                                 <button
                                     type="submit"
-                                    className="btn btn-dark px-4 py-2 btn-sm text-uppercase font-monospace"
-                                    style={{
-                                        backgroundColor: '#8b6508',
-                                        borderColor: '#8b6508'
-                                    }}
+                                    className="btn btn-dark px-4 py-2 btn-sm text-uppercase font-monospace submit-profile-btn"
                                 >
                                     Salveaza profilul
                                 </button>
@@ -650,6 +709,8 @@ export const ManagerProfileSetup: React.FC<ManagerProfileSetupProps> = ({ onSave
                     )}
                 </form>
             </div>
+        </div>
+            <Footer />
         </div>
     );
 };

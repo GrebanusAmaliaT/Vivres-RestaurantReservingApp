@@ -48,7 +48,8 @@ public class AuthController : ControllerBase
                 token = result.Token,
                 role = result.Role,
                 cityId = result.CityId,
-                message = result.Message
+                message = result.Message,
+                hasProfileCompleted = result.HasProfileCompleted
             });
         }
         catch (Exception ex)

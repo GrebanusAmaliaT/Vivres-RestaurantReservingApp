@@ -13,13 +13,12 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
-    onNavigate, onAccountClick, userRole, onLogout
+    onNavigate,
+    onAccountClick,
+    userRole,
+    onLogout
 }) => {
     const { t, i18n } = useTranslation();
-
-    const changeLanguage = (lng: 'ro' | 'en') => {
-        i18n.changeLanguage(lng);
-    };
 
     return (
         <div

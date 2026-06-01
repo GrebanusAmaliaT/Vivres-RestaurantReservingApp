@@ -23,7 +23,7 @@ public class Restaurant
     public Guid CityId { get; set; }
     public virtual City City { get; set; } = default!;
 
-    public int DefaultReservationDurationInHours { get; set; } = 2;
+    public double DefaultReservationDurationInHours { get; set; } = 2;
 
     public bool AcceptsEvents { get; set; }
     public decimal? WeddingMenuPricePerPerson { get; set; }

@@ -10,6 +10,14 @@ namespace AplicatieRezervari.Server.Services
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly ILogger<ReservationService> _logger;
 
+        private static readonly string[] AllowedStatuses =
+        {
+            "Pending",
+            "Confirmed",
+            "Rejected",
+            "Cancelled"
+        };
+
         public ReservationService(
             IReservationRepository reservationRepository,
             IRestaurantRepository restaurantRepository,
@@ -23,9 +31,25 @@ namespace AplicatieRezervari.Server.Services
         public async Task<ReservationDto> CreateReservationAsync(CreateReservationDto dto, string userId)
         {
             var restaurant = await _restaurantRepository.GetRestaurantByIdAsync(dto.RestaurantId);
+
             if (restaurant == null)
             {
-                throw new KeyNotFoundException("Restaurant not found");
+                throw new KeyNotFoundException("Restaurantul nu a fost gasit.");
+            }
+
+            if (dto.ReservationDate <= DateTime.Now)
+            {
+                throw new ArgumentException("Data si ora rezervarii trebuie sa fie in viitor.");
+            }
+
+            if (dto.NumberOfPeople <= 0)
+            {
+                throw new ArgumentException("Numarul de persoane trebuie sa fie valid.");
+            }
+
+            if (dto.NumberOfPeople > restaurant.Capacity)
+            {
+                throw new ArgumentException("Numarul de persoane depaseste capacitatea restaurantului.");
             }
 
             if (dto.IsEvent)
@@ -36,36 +60,38 @@ namespace AplicatieRezervari.Server.Services
             return await HandleRegularReservationAsync(dto, restaurant, userId);
         }
 
-        private async Task<ReservationDto> HandleEventReservationAsync(CreateReservationDto dto, Restaurant restaurant, string userId)
+        private async Task<ReservationDto> HandleEventReservationAsync(
+            CreateReservationDto dto,
+            Restaurant restaurant,
+            string userId)
         {
             if (!restaurant.AcceptsEvents)
             {
-                throw new ArgumentException("This restaurant does not host special events");
+                throw new ArgumentException("Acest restaurant nu accepta evenimente speciale.");
             }
 
-            if (restaurant.MinPeopleForEvents.HasValue && dto.NumberOfPeople < restaurant.MinPeopleForEvents.Value)
+            if (restaurant.MinPeopleForEvents.HasValue &&
+                dto.NumberOfPeople < restaurant.MinPeopleForEvents.Value)
             {
-                throw new ArgumentException($"Minimum required people for an event at this location is {restaurant.MinPeopleForEvents}");
+                throw new ArgumentException(
+                    $"Numarul minim de persoane pentru eveniment este {restaurant.MinPeopleForEvents.Value}.");
             }
 
-            if (dto.NumberOfPeople > restaurant.Capacity)
-            {
-                throw new ArgumentException("The number of people exceeds the total capacity of the restaurant");
-            }
+            var hasConfirmedReservationOnSameDay = HasConfirmedReservationOnSameDay(
+                restaurant,
+                dto.ReservationDate
+            );
 
-            // Check if the restaurant has ANY reservation on that specific day
-            var hasExistingReservations = restaurant.Tables.Any(t => t.Reservations.Any(r =>
-                r.Status == "Confirmed" && r.ReservationDate.Date == dto.ReservationDate.Date));
-
-            if (hasExistingReservations)
+            if (hasConfirmedReservationOnSameDay)
             {
-                throw new ArgumentException("The restaurant is already booked for another reservation or event on this day");
+                throw new ArgumentException("Restaurantul are deja o rezervare confirmata in acea zi.");
             }
 
             decimal menuPrice = dto.EventMenuType?.ToLower() switch
             {
                 "wedding" => restaurant.WeddingMenuPricePerPerson ?? 0,
                 "baptism" => restaurant.BaptismMenuPricePerPerson ?? 0,
+                "anniversary" => restaurant.AnniversaryMenuPricePerPerson ?? 0,
                 _ => restaurant.AnniversaryMenuPricePerPerson ?? 0
             };
 
@@ -78,6 +104,7 @@ namespace AplicatieRezervari.Server.Services
                 NumberOfPeople = dto.NumberOfPeople,
                 SpecialRequests = dto.SpecialRequests,
                 Status = "Pending",
+                CreatedAt = DateTime.UtcNow,
                 Type = ReservationType.Event,
                 EventMenuType = dto.EventMenuType,
                 EstimatedTotalCost = menuPrice * dto.NumberOfPeople,
@@ -85,34 +112,55 @@ namespace AplicatieRezervari.Server.Services
             };
 
             var result = await _reservationRepository.CreateAsync(reservation);
-            _logger.LogInformation("Event reservation {Id} created for venue {RestaurantId}", result.Id, restaurant.Id);
 
-            return MapToDto(result, restaurant.Name);
+            _logger.LogInformation(
+                "Event reservation {ReservationId} created for restaurant {RestaurantId}",
+                result.Id,
+                restaurant.Id
+            );
+
+            return MapToDto(result, restaurant);
         }
 
-        private async Task<ReservationDto> HandleRegularReservationAsync(CreateReservationDto dto, Restaurant restaurant, string userId)
+        private async Task<ReservationDto> HandleRegularReservationAsync(
+            CreateReservationDto dto,
+            Restaurant restaurant,
+            string userId)
         {
             var reservationTime = dto.ReservationDate.TimeOfDay;
-            if (reservationTime < restaurant.OpeningTime || reservationTime > restaurant.ClosingTime)
-            {
-                throw new ArgumentException("The restaurant is closed at the selected time");
-            }
-
             var requestedStart = dto.ReservationDate;
             var requestedEnd = requestedStart.AddHours(restaurant.DefaultReservationDurationInHours);
 
-           var availableTable = restaurant.Tables
+
+            if (reservationTime < restaurant.OpeningTime)
+            {
+                throw new ArgumentException("Restaurantul este inchis la ora selectata.");
+            }
+
+            if (requestedEnd.TimeOfDay > restaurant.ClosingTime)
+            {
+                throw new ArgumentException("Rezervarea depaseste ora de inchidere a restaurantului.");
+            }
+
+            if (restaurant.Tables == null || !restaurant.Tables.Any())
+            {
+                throw new ArgumentException("Restaurantul nu are mese configurate.");
+            }
+
+            var availableTable = restaurant.Tables
                 .Where(t => t.Capacity >= dto.NumberOfPeople)
                 .OrderBy(t => t.Capacity)
-                .FirstOrDefault(t => !t.Reservations.Any(r =>
-                    r.Status == "Confirmed" &&
-                    ((requestedStart >= r.ReservationDate && requestedStart < r.ReservationDate.AddHours(restaurant.DefaultReservationDurationInHours)) ||
-                     (requestedEnd > r.ReservationDate && requestedEnd <= r.ReservationDate.AddHours(restaurant.DefaultReservationDurationInHours)) ||
-                     (requestedStart <= r.ReservationDate && requestedEnd >= r.ReservationDate.AddHours(restaurant.DefaultReservationDurationInHours)))));
+                .FirstOrDefault(t => IsTableAvailable(
+                    t,
+                    requestedStart,
+                    requestedEnd,
+                    restaurant.DefaultReservationDurationInHours,
+                    null
+                ));
 
             if (availableTable == null)
             {
-                throw new ArgumentException("No tables available for the selected time and number of people");
+                throw new ArgumentException("Nu exista mese disponibile pentru ora si numarul de persoane selectate.");
             }
 
             var reservation = new Reservation
@@ -124,76 +172,198 @@ namespace AplicatieRezervari.Server.Services
                 NumberOfPeople = dto.NumberOfPeople,
                 SpecialRequests = dto.SpecialRequests,
                 Status = "Pending",
+                CreatedAt = DateTime.UtcNow,
                 Type = ReservationType.Regular,
                 RestaurantTableId = availableTable.Id,
                 EstimatedTotalCost = 0
             };
 
             var result = await _reservationRepository.CreateAsync(reservation);
-            _logger.LogInformation("Regular reservation {Id} assigned to Table {TableId}", result.Id, availableTable.Id);
 
-            return MapToDto(result, restaurant.Name);
+            _logger.LogInformation(
+                "Regular reservation {ReservationId} created as Pending for table {TableId}",
+                result.Id,
+                availableTable.Id
+            );
+
+            return MapToDto(result, restaurant);
         }
-
-        private ReservationDto MapToDto(Reservation result, string restaurantName)
-        {
-            return new ReservationDto
-            {
-                Id = result.Id,
-                ReservationDate = result.ReservationDate,
-                NumberOfPeople = result.NumberOfPeople,
-                Status = result.Status,
-                RestaurantName = restaurantName,
-                EstimatedTotalCost = result.EstimatedTotalCost
-            };
-        }
-
 
         public async Task<IEnumerable<ReservationDto>> GetClientReservationsAsync(string userId)
         {
             var list = await _reservationRepository.GetByUserIdAsync(userId);
-            return list.Select(r => new ReservationDto
-            {
-                Id = r.Id,
-                ReservationDate = r.ReservationDate,
-                NumberOfPeople = r.NumberOfPeople,
-                SpecialRequests = r.SpecialRequests,
-                Status = r.Status,
-                RestaurantName = r.Restaurant.Name,
-                RestaurantAddress = r.Restaurant.Address
-            });
+
+            return list.Select(r => MapToDto(r, r.Restaurant));
         }
 
         public async Task<IEnumerable<ReservationDto>> GetManagerReservationsAsync(string managerId)
         {
             var list = await _reservationRepository.GetByRestaurantManagerIdAsync(managerId);
-            return list.Select(r => new ReservationDto
-            {
-                Id = r.Id,
-                ReservationDate = r.ReservationDate,
-                NumberOfPeople = r.NumberOfPeople,
-                SpecialRequests = r.SpecialRequests,
-                Status = r.Status,
-                RestaurantName = r.Restaurant.Name,
-                RestaurantAddress = r.Restaurant.Address
-            });
+
+            return list.Select(r => MapToDto(r, r.Restaurant));
         }
 
         public async Task<bool> UpdateStatusAsync(Guid reservationId, string status, string managerId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
-            if (reservation == null) return false;
-
-            if (reservation.Restaurant.ManagerId != managerId)
+            if (!AllowedStatuses.Contains(status))
             {
-                _logger.LogWarning("Unauthorized status change attempt by manager {ManagerId}", managerId);
+                _logger.LogWarning("Invalid reservation status: {Status}", status);
                 return false;
             }
 
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+
+            if (reservation == null)
+            {
+                return false;
+            }
+
+            if (reservation.Restaurant.ManagerId != managerId)
+            {
+                _logger.LogWarning(
+                    "Unauthorized status change attempt by manager {ManagerId}",
+                    managerId
+                );
+
+                return false;
+            }
+
+            if (reservation.Status != "Pending" && status == "Confirmed")
+            {
+                _logger.LogWarning(
+                    "Only pending reservations can be confirmed. Reservation {ReservationId} has status {Status}",
+                    reservationId,
+                    reservation.Status
+                );
+
+                return false;
+            }
+
+            if (status == "Confirmed")
+            {
+                var canConfirm = CanConfirmReservation(reservation);
+
+                if (!canConfirm)
+                {
+                    _logger.LogWarning(
+                        "Reservation {ReservationId} cannot be confirmed because the slot is no longer available.",
+                        reservationId
+                    );
+
+                    return false;
+                }
+            }
+
             reservation.Status = status;
+
             await _reservationRepository.UpdateAsync(reservation);
-            _logger.LogInformation("Reservation {Id} status updated to {Status}", reservationId, status);
+
+            _logger.LogInformation(
+                "Reservation {ReservationId} status updated to {Status}",
+                reservationId,
+                status
+            );
+
             return true;
+        }
+
+        private static bool CanConfirmReservation(Reservation reservation)
+        {
+            var restaurant = reservation.Restaurant;
+
+            if (reservation.Type == ReservationType.Event)
+            {
+                return !HasConfirmedReservationOnSameDay(
+                    restaurant,
+                    reservation.ReservationDate,
+                    reservation.Id
+                );
+            }
+
+            if (reservation.RestaurantTable == null)
+            {
+                return false;
+            }
+
+            var requestedStart = reservation.ReservationDate;
+            var requestedEnd = requestedStart.AddHours(restaurant.DefaultReservationDurationInHours);
+
+            return IsTableAvailable(
+                reservation.RestaurantTable,
+                requestedStart,
+                requestedEnd,
+                restaurant.DefaultReservationDurationInHours,
+                reservation.Id
+            );
+        }
+
+        private static bool HasConfirmedReservationOnSameDay(
+            Restaurant restaurant,
+            DateTime reservationDate,
+            Guid? ignoredReservationId = null)
+        {
+            var reservationsFromRestaurant = restaurant.Reservations ?? new List<Reservation>();
+
+            var reservationsFromTables = restaurant.Tables?
+                .SelectMany(t => t.Reservations ?? new List<Reservation>())
+                .ToList() ?? new List<Reservation>();
+
+            return reservationsFromRestaurant
+                .Concat(reservationsFromTables)
+                .Any(r =>
+                    r.Status == "Confirmed" &&
+                    r.ReservationDate.Date == reservationDate.Date &&
+                    (!ignoredReservationId.HasValue || r.Id != ignoredReservationId.Value)
+                );
+        }
+
+        private static bool IsTableAvailable(
+            RestaurantTable table,
+            DateTime requestedStart,
+            DateTime requestedEnd,
+            double durationInHours,
+            Guid? ignoredReservationId)
+        {
+            return !table.Reservations.Any(r =>
+                r.Status == "Confirmed" &&
+                (!ignoredReservationId.HasValue || r.Id != ignoredReservationId.Value) &&
+                ReservationsOverlap(
+                    requestedStart,
+                    requestedEnd,
+                    r.ReservationDate,
+                    r.ReservationDate.AddHours(durationInHours)
+                )
+            );
+        }
+
+        private static bool ReservationsOverlap(
+            DateTime start1,
+            DateTime end1,
+            DateTime start2,
+            DateTime end2)
+        {
+            return start1 < end2 && end1 > start2;
+        }
+
+        private static ReservationDto MapToDto(Reservation reservation, Restaurant restaurant)
+        {
+            return new ReservationDto
+            {
+                Id = reservation.Id,
+                RestaurantId = restaurant.Id,
+                RestaurantTableId = reservation.RestaurantTableId,
+                ReservationDate = reservation.ReservationDate,
+                NumberOfPeople = reservation.NumberOfPeople,
+                SpecialRequests = reservation.SpecialRequests,
+                Status = reservation.Status,
+                Type = reservation.Type.ToString(),
+                EventMenuType = reservation.EventMenuType,
+                RestaurantName = restaurant.Name,
+                RestaurantAddress = restaurant.Address,
+                UserEmail = reservation.User?.Email ?? string.Empty,
+                EstimatedTotalCost = reservation.EstimatedTotalCost,
+                CreatedAt = reservation.CreatedAt
+            };
         }
     }
 }

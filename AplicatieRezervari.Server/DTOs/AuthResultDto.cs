@@ -8,5 +8,6 @@ namespace AplicatieRezervari.Server.DTOs
         public string Message { get; set; }
         public string Role { get; set; }
         public Guid? CityId { get; set; }
+        public bool HasProfileCompleted { get; set; }
     }
 }

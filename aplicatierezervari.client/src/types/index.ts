@@ -1,3 +1,11 @@
+export interface CityDto {
+    id: string;
+    name: string;
+}
+export interface CatalogItemDto {
+    id: string;
+    name: string;
+}
 export interface RestaurantDto {
     id: string;
     name: string;
@@ -5,20 +13,56 @@ export interface RestaurantDto {
     description: string;
     capacity: number;
     averageBudget: number;
+
+    cityId: string;
     cityName: string;
-    cuisineTypes: string[];
-    facilities: string[];
+
+    latitude?: number;
+    longitude?: number;
+
+    mood: number;
+
+    cuisineTypeIds: string[];
+    cuisineTypes?: string[];
+
+    standardFacilities: string[];
+    otherFacilities: string;
+
+    image1Url?: string;
+    image2Url?: string;
+    image3Url?: string;
+
+    openingTime: string;
+    closingTime: string;
+    defaultReservationDurationInHours: number;
 }
 
-export interface CityDto {
+export interface CreateReservationDto {
+    restaurantId: string;
+    reservationDate: string;
+    numberOfPeople: number;
+    specialRequests?: string;
+    isEvent: boolean;
+    eventMenuType?: string | null;
+}
+
+export interface ReservationDto {
     id: string;
-    name: string;
-}
+    restaurantId: string;
+    restaurantTableId?: string | null;
 
-export interface UserContextType {
-    token: string | null;
-    role: 'Client' | 'RestaurantManager' | null;
-    currentCityId: string | null;
-    updateCity: (cityId: string) => void;
-    logout: () => void;
+    reservationDate: string;
+    numberOfPeople: number;
+    specialRequests?: string | null;
+
+    status: string;
+    type: string;
+    eventMenuType?: string | null;
+
+    restaurantName: string;
+    restaurantAddress: string;
+    userEmail: string;
+
+    estimatedTotalCost: number;
+    createdAt: string;
 }

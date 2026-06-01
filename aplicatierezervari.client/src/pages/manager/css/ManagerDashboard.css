@@ -1,0 +1,41 @@
+.dashboard-container {
+    max-width: 1100px;
+    color: #1a1a1a;
+}
+
+.edit-profile-btn {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+}
+
+.dashboard-table {
+    min-width: 800px;
+}
+
+.dashboard-table-header {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+}
+
+.dashboard-table-row {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.badge-event,
+.badge-table {
+    font-size: 10px;
+}
+
+.table-notes-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action-btn-approve,
+.action-btn-reject {
+    font-size: 10px;
+    border-radius: 4px;
+}

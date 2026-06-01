@@ -51,7 +51,6 @@ namespace AplicatieRezervari.Server.Controllers
         }
 
         [HttpGet("cuisines")]
-        [Authorize]
         public async Task<IActionResult> GetCuisines()
         {
             var cuisines = await _restaurantService.GetCuisinesAsync();
@@ -59,7 +58,6 @@ namespace AplicatieRezervari.Server.Controllers
         }
 
         [HttpGet("facilities")]
-        [Authorize]
         public async Task<IActionResult> GetFacilities()
         {
             var facilities = await _restaurantService.GetFacilitiesAsync();
