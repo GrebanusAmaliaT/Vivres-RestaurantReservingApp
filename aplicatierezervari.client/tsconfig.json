@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "jsx": "react-jsx",
+        "useDefineForClassFields": true,
+        "lib": [ "DOM", "DOM.Iterable", "ES2022" ],
+
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "allowImportingTsExtensions": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [ "./src/*" ]
+        },
+
+        "noEmit": true,
+
+        "isolatedModules": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+
+        "skipLibCheck": true
+    },
+    "include": [ "src" ]
+}
