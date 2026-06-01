@@ -28,7 +28,6 @@ namespace AplicatieRezervari.Server.Services
                 throw new KeyNotFoundException("Restaurant not found");
             }
 
-            // Main orchestrator splits the logic based on reservation type
             if (dto.IsEvent)
             {
                 return await HandleEventReservationAsync(dto, restaurant, userId);
@@ -141,7 +140,7 @@ namespace AplicatieRezervari.Server.Services
             return new ReservationDto
             {
                 Id = result.Id,
-                ReservationDate = result.ReservationDate, // or result.ReservationDate depending on your model field name
+                ReservationDate = result.ReservationDate,
                 NumberOfPeople = result.NumberOfPeople,
                 Status = result.Status,
                 RestaurantName = restaurantName,

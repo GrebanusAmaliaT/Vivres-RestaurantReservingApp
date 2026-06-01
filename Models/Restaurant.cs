@@ -15,10 +15,10 @@ public class Restaurant
     public decimal AverageBudget { get; set; }
     public string? ManagerId { get; set; }
 
-
-    // --- COORDONATE GOOGLE MAPS ---
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+
+    public RestaurantMood Mood { get; set; }
 
     public Guid CityId { get; set; }
     public virtual City City { get; set; } = default!;
@@ -33,9 +33,16 @@ public class Restaurant
 
     public TimeSpan OpeningTime { get; set; } 
     public TimeSpan ClosingTime { get; set; } 
-    public virtual ICollection<RestaurantTable> Tables { get; set; }
     public virtual ICollection<RestaurantCuisine> RestaurantCuisines { get; set; } = new List<RestaurantCuisine>();
-    public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     public virtual ICollection<RestaurantFacility> RestaurantFacilities { get; set; } = new List<RestaurantFacility>();
+
+    public string? ExtraFacilities { get; set; }
+
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+    public virtual ICollection<RestaurantTable> Tables { get; set; } = new List<RestaurantTable>();
+
+    public string? Image1Url { get; set; }
+    public string? Image2Url { get; set; }
+    public string? Image3Url { get; set; }
 }

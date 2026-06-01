@@ -1,4 +1,4 @@
-@AplicatieRezervari.Server_HostAddress = http://localhost:5132
+@AplicatieRezervari.Server_HostAddress = https://localhost:7065
 
 GET {{AplicatieRezervari.Server_HostAddress}}/weatherforecast/
 Accept: application/json

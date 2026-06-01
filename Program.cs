@@ -63,12 +63,12 @@ public class Program
             };
         });
 
-        // 3. Configurare CORS pentru React (Vite)
+        // 3. Configurare CORS pentru React (Vite) - ACTUALIZAT CU PORTUL CORECT
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowReactApp", policy =>
             {
-                policy.WithOrigins("https://localhost:5173")
+                policy.WithOrigins("https://localhost:57278", "http://localhost:57278") // Schimbat din 5173 în 57278
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -80,10 +80,8 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-
         builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
         builder.Services.AddScoped<IReservationService, ReservationService>();
-
 
         var app = builder.Build();
 

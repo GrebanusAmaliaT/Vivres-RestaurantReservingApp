@@ -28,10 +28,32 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .Property(r => r.AverageBudget)
             .HasColumnType("decimal(18,2)");
 
+
         modelBuilder.Entity<RestaurantFacility>()
-            .HasKey(rf => new { rf.RestaurantId, rf.FacilityId });
+    .HasKey(rf => new { rf.RestaurantId, rf.FacilityId });
+
+        modelBuilder.Entity<RestaurantFacility>()
+            .HasOne(rf => rf.Restaurant)
+            .WithMany(r => r.RestaurantFacilities)
+            .HasForeignKey(rf => rf.RestaurantId);
+
+        modelBuilder.Entity<RestaurantFacility>()
+            .HasOne(rf => rf.Facility)
+            .WithMany(f => f.RestaurantFacilities)
+            .HasForeignKey(rf => rf.FacilityId);
+
 
         modelBuilder.Entity<RestaurantCuisine>()
             .HasKey(rc => new { rc.RestaurantId, rc.CuisineTypeId });
+
+        modelBuilder.Entity<RestaurantCuisine>()
+            .HasOne(rc => rc.Restaurant)
+            .WithMany(r => r.RestaurantCuisines)
+            .HasForeignKey(rc => rc.RestaurantId);
+
+        modelBuilder.Entity<RestaurantCuisine>()
+            .HasOne(rc => rc.CuisineType)
+            .WithMany(c => c.RestaurantCuisines)
+            .HasForeignKey(rc => rc.CuisineTypeId);
     }
 }

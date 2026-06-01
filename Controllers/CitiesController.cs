@@ -1,6 +1,6 @@
-﻿using AplicatieRezervari.Server.DTOs;
-using AplicatieRezervari.Server.Services;
+﻿using AplicatieRezervari.Server.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AplicatieRezervari.Server.Controllers
 {
@@ -8,18 +8,25 @@ namespace AplicatieRezervari.Server.Controllers
     [Route("api/[controller]")]
     public class CitiesController : ControllerBase
     {
-        private readonly ICityService _cityService;
+        private readonly ApplicationDbContext _context;
 
-        public CitiesController(ICityService cityService)
+        public CitiesController(ApplicationDbContext context)
         {
-            _cityService = cityService;
+            _context = context;
         }
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<CityDto>))]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetCities()
         {
-            var cities = await _cityService.GetAllCitiesAsync();
+            var cities = await _context.Cities
+                .OrderBy(c => c.Name)
+                .Select(c => new
+                {
+                    id = c.Id,
+                    name = c.Name
+                })
+                .ToListAsync();
+
             return Ok(cities);
         }
     }

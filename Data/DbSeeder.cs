@@ -1,55 +1,115 @@
 ﻿using AplicatieRezervari.Server.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AplicatieRezervari.Server.Data
 {
     public static class DbSeeder
     {
-        public static async Task SeedDataAsync(ApplicationDbContext context, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public static async Task SeedDataAsync(
+            ApplicationDbContext context,
+            RoleManager<IdentityRole> roleManager,
+            UserManager<ApplicationUser> userManager)
         {
             context.Database.EnsureCreated();
 
-            if (!roleManager.Roles.Any())
+            var roles = new List<string>
             {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
-                await roleManager.CreateAsync(new IdentityRole("RestaurantManager"));
-                await roleManager.CreateAsync(new IdentityRole("Client"));
+                "RestaurantManager",
+                "Client"
+            };
+
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
             }
 
-            if (!context.Cities.Any())
+            var cityNames = new List<string>
             {
-                var cities = new List<City>
+                "Bucuresti",
+                "Cluj-Napoca",
+                "Timisoara",
+                "Iasi",
+                "Brasov",
+                "Craiova",
+                "Sibiu"
+            };
+
+            foreach (var cityName in cityNames)
+            {
+                bool exists = await context.Cities
+                    .AnyAsync(c => c.Name == cityName);
+
+                if (!exists)
                 {
-                    new City { Id = Guid.NewGuid(), Name = "Bucharest" },
-                    new City { Id = Guid.NewGuid(), Name = "Cluj-Napoca" },
-                    new City { Id = Guid.NewGuid(), Name = "Timisoara" }
-                };
-                await context.Cities.AddRangeAsync(cities);
-                await context.SaveChangesAsync();
+                    context.Cities.Add(new City
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = cityName
+                    });
+                }
             }
 
-            if (!context.CuisineTypes.Any())
+            var cuisineNames = new List<string>
             {
-                var cuisines = new List<CuisineType>
+                "Traditionala",
+                "Romaneasca",
+                "Italiana",
+                "Asiatica",
+                "Mexicana",
+                "Greceasca",
+                "Frantuzeasca",
+                "Libaneza",
+                "Fusion",
+                "Internationala"
+            };
+
+            foreach (var cuisineName in cuisineNames)
+            {
+                bool exists = await context.CuisineTypes
+                    .AnyAsync(c => c.Name == cuisineName);
+
+                if (!exists)
                 {
-                    new CuisineType { Id = Guid.NewGuid(), Name = "Traditionala" },
-                    new CuisineType { Id = Guid.NewGuid(), Name = "Asiatica" },
-                    new CuisineType { Id = Guid.NewGuid(), Name = "Italiana" },
-                    new CuisineType { Id = Guid.NewGuid(), Name = "Mexican" }
-                };
-                await context.CuisineTypes.AddRangeAsync(cuisines);
+                    context.CuisineTypes.Add(new CuisineType
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = cuisineName
+                    });
+                }
             }
 
-            if (!context.Facilities.Any())
+            var facilityNames = new List<string>
             {
-                var facilities = new List<Facility>
+                "Ring de dans",
+                "Parcare privata",
+                "Muzica live",
+                "Zona fumatori",
+                "Terasa",
+                "Wi-Fi",
+                "Aer conditionat",
+                "Loc de joaca pentru copii",
+                "Acces persoane cu dizabilitati",
+                "Pet friendly",
+                "Se accepta evenimente private"
+            };
+
+            foreach (var facilityName in facilityNames)
+            {
+                bool exists = await context.Facilities
+                    .AnyAsync(f => f.Name == facilityName);
+
+                if (!exists)
                 {
-                    new Facility { Id = Guid.NewGuid(), Name = "Ring de dans" },
-                    new Facility { Id = Guid.NewGuid(), Name = "Candy Bar" },
-                    new Facility { Id = Guid.NewGuid(), Name = "Parcare privata" },
-                    new Facility { Id = Guid.NewGuid(), Name = "Garderoba" }
-                };
-                await context.Facilities.AddRangeAsync(facilities);
+                    context.Facilities.Add(new Facility
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = facilityName
+                    });
+                }
             }
 
             await context.SaveChangesAsync();
