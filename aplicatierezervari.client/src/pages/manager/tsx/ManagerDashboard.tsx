@@ -3,8 +3,8 @@ import { apiService } from '../../../services/api';
 import type { ReservationDto } from '../../../types/index';
 import '../css/ManagerDashboard.css';
 
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+import { Navbar } from '../../../components/tsx/Navbar';
+import { Footer } from '../../../components/tsx/Footer';
 
 interface ManagerDashboardProps {
     restaurantName: string;
@@ -119,6 +119,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                 userRole={userRole}
                 onLogout={onLogout}
                 onBack={onBack}
+
             />
                  <div className="container py-5 text-start dashboard-container">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-4 mb-5 gap-3">

@@ -418,6 +418,7 @@ namespace AplicatieRezervari.Server.Services
                 CreatedAt = reservation.CreatedAt,
                 EventTypeId = reservation.EventTypeId,
                 EventTypeName = reservation.EventType?.Name ?? reservation.EventMenuType,
+                HasReview = reservation.Review != null,
                 MenuSelections = reservation.EventMenuSelections?
                 .Select(selection => new ReservationEventMenuSelectionDto
                 {

@@ -34,6 +34,8 @@ public class Reservation
 
     public virtual ICollection<ReservationEventMenuSelection> EventMenuSelections { get; set; } = new List<ReservationEventMenuSelection>();
 
+    public virtual Review? Review { get; set; }
+
     [Required]
     public string UserId { get; set; } = string.Empty;
 

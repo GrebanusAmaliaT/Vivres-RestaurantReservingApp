@@ -1,9 +1,14 @@
-﻿import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+﻿import { ClientNavbar } from '../../../components/tsx/NavbarClient';
+import { Footer } from '../../../components/tsx/Footer';
+
+import { useEffect, useState } from 'react';
+import { apiService } from '../../../services/api';
 import type {
     EventRestaurantListingDto,
-    RestaurantEventOptionPublicDto
+    RestaurantEventOptionPublicDto,
+    ReviewDto
 } from '../../../types/index';
+
 import '../css/EventRestaurantDetailsPage.css';
 
 interface EventRestaurantDetailsPageProps {
@@ -12,6 +17,10 @@ interface EventRestaurantDetailsPageProps {
     onLogout: () => void;
     onBack: () => void;
     onStartEventRequest: (restaurant: EventRestaurantListingDto) => void;
+
+    onAccountDetailsClick: () => void;
+    onMyReservationsClick: () => void;
+    onMyReviewsClick: () => void;
 }
 
 export const EventRestaurantDetailsPage: React.FC<EventRestaurantDetailsPageProps> = ({
@@ -19,15 +28,68 @@ export const EventRestaurantDetailsPage: React.FC<EventRestaurantDetailsPageProp
     userRole,
     onLogout,
     onBack,
-    onStartEventRequest
+    onStartEventRequest,
+    onAccountDetailsClick,
+    onMyReservationsClick,
+    onMyReviewsClick
 }) => {
+    const [reviews, setReviews] = useState<ReviewDto[]>([]);
+    const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
+
+    const getImageUrl = (url: string) => {
+        if (!url) return '';
+        if (url.startsWith('http')) return url;
+        return `https://localhost:7065${url}`;
+    };
+
+    const renderStars = (rating: number) => {
+        return [1, 2, 3, 4, 5].map(star => (
+            <span key={star} className={star <= rating ? 'active' : ''}>
+                ★
+            </span>
+        ));
+    };
+
+    const averageRating =
+        reviews.length > 0
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+            : 0;
+
+    useEffect(() => {
+        const loadReviews = async () => {
+            if (!restaurant) {
+                return;
+            }
+
+            try {
+                setReviewsLoading(true);
+
+                const data = await apiService.getRestaurantReviews(
+                    restaurant.id,
+                    'Event'
+                );
+
+                setReviews(data);
+            } catch (error) {
+                console.error('Failed to load event restaurant reviews:', error);
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        loadReviews();
+    }, [restaurant]);
+
     if (!restaurant) {
         return (
             <div className="event-details-page">
-                <Navbar
+                <ClientNavbar
                     userRole={userRole}
                     onLogout={onLogout}
                     onBack={onBack}
+                    onAccountDetailsClick={onAccountDetailsClick}
+                    onMyReservationsClick={onMyReservationsClick}
+                    onMyReviewsClick={onMyReviewsClick}
                 />
 
                 <main className="event-details-empty">
@@ -49,11 +111,6 @@ export const EventRestaurantDetailsPage: React.FC<EventRestaurantDetailsPageProp
         restaurant.image3Url
     ].filter(Boolean) as string[];
 
-    const getImageUrl = (imageUrl?: string | null) => {
-        if (!imageUrl) return '';
-        return `https://localhost:7065${imageUrl}`;
-    };
-
     const mainImage = getImageUrl(images[0]);
     const secondImage = getImageUrl(images[1]);
     const thirdImage = getImageUrl(images[2]);
@@ -69,10 +126,12 @@ export const EventRestaurantDetailsPage: React.FC<EventRestaurantDetailsPageProp
 
     return (
         <div className="event-details-page">
-            <Navbar
-                userRole={userRole}
+            <ClientNavbar
                 onLogout={onLogout}
                 onBack={onBack}
+                onAccountDetailsClick={onAccountDetailsClick}
+                onMyReservationsClick={onMyReservationsClick}
+                onMyReviewsClick={onMyReviewsClick}
             />
 
             <main className="event-details-container">
@@ -234,34 +293,84 @@ export const EventRestaurantDetailsPage: React.FC<EventRestaurantDetailsPageProp
                 </section>
 
                 <section className="event-details-reviews-section">
-                    <div className="event-details-section-header">
-                        <span className="event-details-kicker">review-uri</span>
-                        <h2>Experientele clientilor</h2>
+                    <div className="event-details-section-heading">
+                        <span className="event-details-kicker">reviewuri</span>
+
+                        <h2>Experiențele clienților</h2>
+
                         <p>
-                            Aici vor aparea review-urile reale lasate de clientii care au
-                            organizat evenimente sau au rezervat mese in acest restaurant.
+                            Reviewuri reale lăsate de clienți după evenimente confirmate și finalizate.
                         </p>
                     </div>
 
-                    <div className="event-details-reviews-placeholder">
-                        <div className="event-details-review-card">
-                            <div className="event-details-review-stars">★★★★★</div>
-                            <p>
-                                Review-urile vor fi disponibile dupa ce implementam sistemul
-                                de feedback al clientilor.
-                            </p>
-                            <span>Vivres Reviews</span>
+                    {reviewsLoading ? (
+                        <div className="event-details-reviews-empty">
+                            Se încarcă reviewurile...
                         </div>
+                    ) : reviews.length === 0 ? (
+                        <div className="event-details-reviews-empty">
+                            <h3>Încă nu există reviewuri pentru evenimente</h3>
+                            <p>
+                                Reviewurile vor apărea aici după ce clienții finalizează evenimentele
+                                și își împărtășesc experiența.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="event-details-rating-summary">
+                                <div>
+                                    <strong>{averageRating.toFixed(1)}</strong>
+                                    <div className="event-details-stars">
+                                        {renderStars(Math.round(averageRating))}
+                                    </div>
+                                </div>
 
-                        <div className="event-details-review-card muted">
-                            <div className="event-details-review-stars">★★★★★</div>
-                            <p>
-                                Vom putea afisa rating mediu, comentarii, data evenimentului
-                                si tipul de rezervare.
-                            </p>
-                            <span>Coming soon</span>
-                        </div>
-                    </div>
+                                <p>
+                                    Bazat pe {reviews.length} reviewuri pentru evenimente organizate aici.
+                                </p>
+                            </div>
+
+                            <div className="event-details-reviews-grid">
+                                {reviews.map(review => (
+                                    <article className="event-details-review-card" key={review.id}>
+                                        <div className="event-details-review-top">
+                                            <div>
+                                                <strong>
+                                                    {review.userFullName || review.userEmail || 'Client Vivres'}
+                                                </strong>
+
+                                                <span>
+                                                    {new Date(review.createdAt).toLocaleDateString('ro-RO')}
+                                                </span>
+                                            </div>
+
+                                            <div className="event-details-stars">
+                                                {renderStars(review.rating)}
+                                            </div>
+                                        </div>
+
+                                        {review.comment && (
+                                            <p className="event-details-review-comment">
+                                                “{review.comment}”
+                                            </p>
+                                        )}
+
+                                        {review.imageUrls && review.imageUrls.length > 0 && (
+                                            <div className="event-details-review-images">
+                                                {review.imageUrls.slice(0, 3).map(imageUrl => (
+                                                    <img
+                                                        key={imageUrl}
+                                                        src={getImageUrl(imageUrl)}
+                                                        alt="Review"
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </article>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </section>
 
                 <section className="event-details-final-cta">

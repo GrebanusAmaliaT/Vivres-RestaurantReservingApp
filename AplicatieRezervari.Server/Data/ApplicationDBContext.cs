@@ -15,13 +15,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CuisineType> CuisineTypes { get; set; } = default!;
     public DbSet<RestaurantFacility> RestaurantFacilities { get; set; } = default!;
     public DbSet<RestaurantCuisine> RestaurantCuisines { get; set; } = default!;
-    public DbSet<Review> Reviews { get; set; } = default!;
     public DbSet<RestaurantTable> RestaurantTables { get; set; } = default!;
     public DbSet<EventType> EventTypes { get; set; } = default!;
     public DbSet<RestaurantEventOption> RestaurantEventOptions { get; set; } = default!;
     public DbSet<MenuType> MenuTypes { get; set; } = default!;
     public DbSet<RestaurantEventMenuOption> RestaurantEventMenuOptions { get; set; } = default!;
     public DbSet<ReservationEventMenuSelection> ReservationEventMenuSelections { get; set; } = default!;
+    public DbSet<Review> Reviews { get; set; } = default!;
+    public DbSet<ReviewImage> ReviewImages { get; set; } = default!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -30,9 +32,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .Property(r => r.AverageBudget)
             .HasColumnType("decimal(18,2)");
 
-
         modelBuilder.Entity<RestaurantFacility>()
-    .HasKey(rf => new { rf.RestaurantId, rf.FacilityId });
+            .HasKey(rf => new { rf.RestaurantId, rf.FacilityId });
 
         modelBuilder.Entity<RestaurantFacility>()
             .HasOne(rf => rf.Restaurant)
@@ -43,7 +44,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(rf => rf.Facility)
             .WithMany(f => f.RestaurantFacilities)
             .HasForeignKey(rf => rf.FacilityId);
-
 
         modelBuilder.Entity<RestaurantCuisine>()
             .HasKey(rc => new { rc.RestaurantId, rc.CuisineTypeId });
@@ -119,5 +119,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(s => s.RestaurantEventMenuOptionId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Reservation)
+            .WithOne(r => r.Review)
+            .HasForeignKey<Review>(r => r.ReservationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Restaurant)
+            .WithMany(r => r.Reviews)
+            .HasForeignKey(r => r.RestaurantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ReviewImage>()
+            .HasOne(i => i.Review)
+            .WithMany(r => r.Images)
+            .HasForeignKey(i => i.ReviewId)
+            .OnDelete(DeleteBehavior.Cascade);
+
     }
 }

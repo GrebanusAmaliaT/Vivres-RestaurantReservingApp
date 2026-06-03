@@ -7,7 +7,8 @@ import {
     UpdateRestaurantEventsDto,
     EventRestaurantListingDto,
     EventTypeDto,
-    MenuTypeDto
+    MenuTypeDto,
+    ReviewDto
 } from '../types/index';
 
 const API_BASE_URL = 'https://localhost:7065/api';
@@ -325,5 +326,91 @@ export const apiService = {
             console.error('API Error in getEventRestaurants:', error);
             return [];
         }
-    }
+    },
+
+    async getMyReservations(): Promise<ReservationDto[]> {
+        const response = await fetch(`${API_BASE_URL}/Reservations/my`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load my reservations');
+        }
+
+        return await response.json();
+    },
+
+    async createReview(formData: FormData): Promise<ReviewDto> {
+        const token = localStorage.getItem('vivres_token');
+
+        const response = await fetch(`${API_BASE_URL}/Reviews`, {
+            method: 'POST',
+            headers: token
+                ? {
+                    Authorization: `Bearer ${token}`
+                }
+                : {},
+            body: formData
+        });
+
+        const responseText = await response.text();
+
+        if (!response.ok) {
+            console.error('Create review error:', responseText);
+
+            try {
+                const errorData = JSON.parse(responseText);
+                throw new Error(errorData.message || 'Failed to create review');
+            } catch {
+                throw new Error('Failed to create review');
+            }
+        }
+
+        return JSON.parse(responseText);
+    },
+
+    async getMyReviews(): Promise<ReviewDto[]> {
+        const response = await fetch(`${API_BASE_URL}/Reviews/my-reviews`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load my reviews');
+        }
+
+        return await response.json();
+    },
+
+    async deleteReview(reviewId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/Reviews/${reviewId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete review');
+        }
+    },
+
+    async getRestaurantReviews(
+        restaurantId: string,
+        type?: 'Table' | 'Event'
+    ): Promise<ReviewDto[]> {
+        const query = type ? `?type=${type}` : '';
+
+        const response = await fetch(`${API_BASE_URL}/Reviews/restaurant/${restaurantId}${query}`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load restaurant reviews');
+        }
+
+        return await response.json();
+    },
+
+
 };

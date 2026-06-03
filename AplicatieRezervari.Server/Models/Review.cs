@@ -8,19 +8,30 @@ namespace AplicatieRezervari.Server.Models
         public Guid Id { get; set; }
 
         [Required]
+        public Guid ReservationId { get; set; }
+
+        public virtual Reservation Reservation { get; set; } = default!;
+
+        [Required]
+        public Guid RestaurantId { get; set; }
+
+        public virtual Restaurant Restaurant { get; set; } = default!;
+
+        [Required]
+        public string UserId { get; set; } = string.Empty;
+
+        public virtual ApplicationUser User { get; set; } = default!;
+
         [Range(1, 5)]
         public int Rating { get; set; }
 
-        [Required]
-        public string Comment { get; set; }
+        [MaxLength(1000)]
+        public string? Comment { get; set; }
+
+        public ReservationType Type { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Relations
-        public Guid RestaurantId { get; set; }
-        public virtual Restaurant Restaurant { get; set; }
-
-        public string UserId { get; set; }
-        public virtual ApplicationUser User { get; set; }
+        public virtual ICollection<ReviewImage> Images { get; set; } = new List<ReviewImage>();
     }
 }

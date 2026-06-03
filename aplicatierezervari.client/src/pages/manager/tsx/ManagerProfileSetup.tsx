@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import '../css/ManagerProfileSetup.css';
 
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+import { Navbar } from '../../../components/tsx/Navbar';
+import { Footer } from '../../../components/tsx/Footer';
 interface ManagerProfileSetupProps {
     onSaveSuccess: () => void;
     userRole: string | null;

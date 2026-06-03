@@ -8,5 +8,6 @@ namespace AplicatieRezervari.Server.Services
         Task<IEnumerable<ReservationDto>> GetClientReservationsAsync(string userId);
         Task<IEnumerable<ReservationDto>> GetManagerReservationsAsync(string managerId);
         Task<bool> UpdateStatusAsync(Guid reservationId, string status, string managerId);
+
     }
 }

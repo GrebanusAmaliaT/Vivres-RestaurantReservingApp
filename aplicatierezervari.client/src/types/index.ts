@@ -60,12 +60,15 @@ export interface ReservationDto {
     status: string;
     type: string;
     eventMenuType?: string | null;
+    eventTypeName?: string | null;
 
     restaurantName: string;
     restaurantAddress: string;
     userEmail: string;
 
     estimatedTotalCost: number;
+    hasReview: boolean;
+
     createdAt: string;
 }
 
@@ -167,4 +170,19 @@ export interface RestaurantEventMenuOptionPublicDto {
 export interface CreateReservationMenuSelectionDto {
     restaurantEventMenuOptionId: string;
     quantity: number;
+}
+
+export interface ReviewDto {
+    id: string;
+    reservationId: string;
+    restaurantId: string;
+    restaurantName: string;
+    userFullName: string;
+    userEmail: string;
+    rating: number;
+    comment?: string | null;
+    type: string;
+    reservationDate: string;
+    createdAt: string;
+    imageUrls: string[];
 }

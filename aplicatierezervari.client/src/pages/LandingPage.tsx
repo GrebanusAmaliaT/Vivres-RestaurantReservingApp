@@ -2,8 +2,8 @@
 import { useTranslation } from 'react-i18next';
 import { ConceptSection } from '../components/Landing/ConceptSection';
 import { MomentsSection } from '../components/Landing/MomentsSection';
-import { Footer } from '../components/Footer';
-import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/tsx/Footer';
+import { Navbar } from '../components/tsx/Navbar';
 
 interface LandingPageProps {
     onNavigate: (view: 'Book a table' | 'Plan your event') => void;

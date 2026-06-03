@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+import { Navbar } from '../../../components/tsx/Navbar';
+import { Footer } from '../../../components/tsx/Footer';
 import { apiService } from '../../../services/api';
 import type {
     RestaurantEventMenuOptionDto,

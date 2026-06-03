@@ -33,6 +33,7 @@
         public List<ReservationEventMenuSelectionDto> MenuSelections { get; set; } = new();
 
         public DateTime CreatedAt { get; set; }
+        public bool HasReview { get; set; }
     }
 
     public class ReservationEventMenuSelectionDto

@@ -103,5 +103,22 @@ namespace AplicatieRezervari.Server.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("my")]
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> GetMyReservations()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.FindFirst("id")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not found from token." });
+            }
+
+            var reservations = await _reservationService.GetClientReservationsAsync(userId);
+
+            return Ok(reservations);
+        }
     }
 }

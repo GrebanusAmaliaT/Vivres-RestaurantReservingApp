@@ -11,6 +11,8 @@ import { EventRestaurantListingPage } from './pages/client/tsx/EventRestaurantLi
 import { EventRestaurantDetailsPage } from './pages/client/tsx/EventRestaurantDetailsPage';
 import { EventRestaurantListingDto } from './types/index';
 import { EventReservationPage } from './pages/client/tsx/EventReservationPage';
+import { MyReservationsPage } from './pages/client/tsx/MyReservationsPage';
+import { MyReviewsPage } from './pages/client/tsx/MyReviewsPage';
 
 type AppView =
     | 'Landing'
@@ -23,7 +25,10 @@ type AppView =
     | 'ManagerEvents'
     | 'EventRestaurantListing'
     | 'EventRestaurantDetails'
-    | 'EventReservation';
+    | 'EventReservation'
+    | 'AccountDetails'
+    | 'MyReservations'
+    | 'MyReviews';
 
 export default function App() {
     const [role, setRole] = useState<string | null>(() => localStorage.getItem('vivres_role'));
@@ -149,6 +154,9 @@ export default function App() {
                         setSelectedRestaurant(restaurant);
                         setCurrentView('Reservation');
                     }}
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onMyReviewsClick={() => setCurrentView('MyReviews')}
                 />
             )}
 
@@ -159,6 +167,10 @@ export default function App() {
                     onLogout={handleLogout}
                     onBack={() => setCurrentView('RestaurantListing')}
                     onReservationSent={() => setCurrentView('RestaurantListing')}
+
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onMyReviewsClick={() => setCurrentView('MyReviews')}
                 />
             )}
 
@@ -179,6 +191,9 @@ export default function App() {
                         setSelectedEventRestaurant(restaurant);
                         setCurrentView('EventRestaurantDetails');
                     }}
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onMyReviewsClick={() => setCurrentView('MyReviews')}
                 />
             )}
 
@@ -192,6 +207,9 @@ export default function App() {
                         setSelectedEventRestaurant(restaurant);
                         setCurrentView('EventReservation');
                     }}
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onMyReviewsClick={() => setCurrentView('MyReviews')}
                 />
             )}
 
@@ -202,9 +220,33 @@ export default function App() {
                     onLogout={handleLogout}
                     onBack={() => setCurrentView('EventRestaurantDetails')}
                     onRequestSent={() => setCurrentView('EventRestaurantListing')}
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onMyReviewsClick={() => setCurrentView('MyReviews')}
                 />
             )}
 
+            {currentView === 'MyReservations' && (
+                <MyReservationsPage
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('Landing')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReviewsClick={() => alert('Pagina Reviewurile mele urmeaza.')}
+                />
+            )}
+
+            {currentView === 'MyReviews' && (
+                <MyReviewsPage
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('Landing')}
+                    onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
+                    onMyReservationsClick={() => setCurrentView('MyReservations')}
+                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                />
+            )}
         </div>
     );
 }

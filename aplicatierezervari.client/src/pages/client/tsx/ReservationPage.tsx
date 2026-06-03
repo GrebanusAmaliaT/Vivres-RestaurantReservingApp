@@ -4,8 +4,8 @@ import { RestaurantDto } from '../../../types';
 import { apiService } from '../../../services/api';
 import '../css/ReservationPage.css';
 
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+import { ClientNavbar } from '../../../components/tsx/NavbarClient';
+import { Footer } from '../../../components/tsx/Footer';
 
 interface ReservationPageProps {
     restaurant: RestaurantDto | null;
@@ -13,6 +13,9 @@ interface ReservationPageProps {
     onReservationSent?: () => void;
     userRole: string | null;
     onLogout: () => void;
+    onAccountDetailsClick: () => void;
+    onMyReservationsClick: () => void;
+    onMyReviewsClick: () => void;
 }
 
 export const ReservationPage: React.FC<ReservationPageProps> = ({
@@ -20,7 +23,10 @@ export const ReservationPage: React.FC<ReservationPageProps> = ({
     onBack,
     onReservationSent,
     userRole,
-    onLogout
+    onLogout,
+    onAccountDetailsClick,
+    onMyReservationsClick,
+    onMyReviewsClick
 }) => {
     const [reservationDate, setReservationDate] = useState<string>('');
     const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
@@ -163,10 +169,13 @@ export const ReservationPage: React.FC<ReservationPageProps> = ({
 
     return (
         <div className="restaurant-reservation-page">
-            <Navbar
+            <ClientNavbar
                 userRole={userRole}
                 onLogout={onLogout}
                 onBack={onBack}
+                onAccountDetailsClick={onAccountDetailsClick}
+                onMyReservationsClick={onMyReservationsClick}
+                onMyReviewsClick={onMyReviewsClick}
             />
             <div className="reservation-page">
            

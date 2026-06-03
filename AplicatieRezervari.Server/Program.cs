@@ -31,6 +31,8 @@ public class Program
         builder.Services.AddScoped<IRestaurantRepository, RestaurantRepository>();
         builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 
+        builder.Services.AddScoped<IReviewService, ReviewService>();
+
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.Password.RequireDigit = false;

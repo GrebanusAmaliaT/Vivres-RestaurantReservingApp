@@ -5,8 +5,8 @@ import { RestaurantDto, CityDto, CatalogItemDto } from '../../../types/index';
 
 import '../css/RestaurantListingPage.css';
 
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+import { ClientNavbar } from '../../../components/tsx/NavbarClient';
+import { Footer } from '../../../components/tsx/Footer';
 
 
 interface RestaurantListingPageProps {
@@ -14,13 +14,20 @@ interface RestaurantListingPageProps {
     onSelectRestaurant: (restaurant: RestaurantDto) => void;
     userRole: string | null;
     onLogout: () => void;
+
+    onAccountDetailsClick: () => void;
+    onMyReservationsClick: () => void;
+    onMyReviewsClick: () => void;
 }
 
 export const RestaurantListingPage: React.FC<RestaurantListingPageProps> = ({
     onBack,
     onSelectRestaurant,
     userRole,
-    onLogout
+    onLogout,
+    onAccountDetailsClick,
+    onMyReservationsClick,
+    onMyReviewsClick
 }) => {
     const [cities, setCities] = useState<CityDto[]>([]);
     const [cuisines, setCuisines] = useState<CatalogItemDto[]>([]);
@@ -153,10 +160,13 @@ export const RestaurantListingPage: React.FC<RestaurantListingPageProps> = ({
 
     return (
         <div className="restaurant-listing-page">
-            <Navbar
+            <ClientNavbar
                 userRole={userRole}
                 onLogout={onLogout}
                 onBack={onBack}
+                onAccountDetailsClick={onAccountDetailsClick}
+                onMyReservationsClick={onMyReservationsClick}
+                onMyReviewsClick={onMyReviewsClick}
             />
 
             <div className="restaurant-listing-page">

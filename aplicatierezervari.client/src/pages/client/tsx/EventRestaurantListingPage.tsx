@@ -1,6 +1,8 @@
 ﻿import { useEffect, useState } from 'react';
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+
+import { ClientNavbar } from '../../../components/tsx/NavbarClient';
+import { Footer } from '../../../components/tsx/Footer';
+
 import { apiService } from '../../../services/api';
 import type {
     CityDto,
@@ -15,13 +17,19 @@ interface EventRestaurantListingPageProps {
     userRole: string | null;
     onLogout: () => void;
     onBack: () => void; onSelectRestaurant: (restaurant: EventRestaurantListingDto) => void;
+    onAccountDetailsClick: () => void;
+    onMyReservationsClick: () => void;
+    onMyReviewsClick: () => void;
 }
 
 export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProps> = ({
     userRole,
     onLogout,
     onBack,
-    onSelectRestaurant
+    onSelectRestaurant,
+    onAccountDetailsClick,
+    onMyReservationsClick,
+    onMyReviewsClick
 }) => {
     const [cities, setCities] = useState<CityDto[]>([]);
     const [eventTypes, setEventTypes] = useState<EventTypeDto[]>([]);
@@ -156,10 +164,12 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
     if (loading) {
         return (
             <div className="event-listing-page">
-                <Navbar
-                    userRole={userRole}
+                <ClientNavbar
                     onLogout={onLogout}
                     onBack={onBack}
+                    onAccountDetailsClick={onAccountDetailsClick}
+                    onMyReservationsClick={onMyReservationsClick}
+                    onMyReviewsClick={onMyReviewsClick}
                 />
 
                 <div className="event-listing-loading">
@@ -174,10 +184,13 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
 
     return (
         <div className="event-listing-page">
-            <Navbar
+            <ClientNavbar
                 userRole={userRole}
                 onLogout={onLogout}
                 onBack={onBack}
+                onAccountDetailsClick={onAccountDetailsClick}
+                onMyReservationsClick={onMyReservationsClick}
+                onMyReviewsClick={onMyReviewsClick}
             />
 
             <main className="event-listing-container">

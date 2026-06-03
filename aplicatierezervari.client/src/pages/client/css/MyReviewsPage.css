@@ -1,0 +1,291 @@
+.my-reviews-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, rgba(200, 169, 90, 0.10), transparent 28%), linear-gradient(180deg, #ffffff 0%, #fbfaf7 52%, #f6f1e8 100%);
+    color: #1f1f1f;
+}
+
+.my-reviews-container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 46px 24px 90px;
+}
+
+.my-reviews-hero {
+    max-width: 720px;
+    margin-bottom: 28px;
+}
+
+.my-reviews-kicker {
+    display: inline-block;
+    color: #8b6508;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 10px;
+}
+
+.my-reviews-hero h1 {
+    margin: 0 0 12px 0;
+    font-size: clamp(34px, 4vw, 52px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.045em;
+}
+
+.my-reviews-hero p {
+    margin: 0;
+    color: #666666;
+    font-size: 16px;
+    line-height: 1.75;
+}
+
+.my-reviews-tabs {
+    display: inline-flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #eee6d8;
+    border-radius: 999px;
+    padding: 7px;
+    margin-bottom: 28px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.04);
+}
+
+    .my-reviews-tabs button {
+        border: none;
+        background: transparent;
+        color: #8b6508;
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-family: monospace;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: all 0.18s ease;
+    }
+
+        .my-reviews-tabs button.active {
+            background: #8b6508;
+            color: #ffffff;
+            box-shadow: 0 10px 22px rgba(139, 101, 8, 0.18);
+        }
+
+.my-reviews-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.my-review-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #eee6d8;
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.045);
+    transition: all 0.18s ease;
+}
+
+    .my-review-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 44px rgba(0, 0, 0, 0.065);
+    }
+
+.my-review-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+    .my-review-top h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: -0.035em;
+    }
+
+.my-review-stars {
+    display: flex;
+    gap: 2px;
+    white-space: nowrap;
+}
+
+    .my-review-stars span {
+        color: #d1c4a0;
+        font-size: 22px;
+    }
+
+        .my-review-stars span.active {
+            color: #8b6508;
+        }
+
+.my-review-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+    .my-review-meta span {
+        background: #fbfaf7;
+        border: 1px solid #ece4d3;
+        color: #666666;
+        border-radius: 999px;
+        padding: 7px 11px;
+        font-family: monospace;
+        font-size: 11px;
+    }
+
+.my-review-comment {
+    color: #3f3f3f;
+    line-height: 1.75;
+    font-size: 15px;
+    margin-bottom: 18px;
+}
+
+.my-review-images {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+    .my-review-images img {
+        width: 100%;
+        height: 92px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 1px solid #eee6d8;
+    }
+
+.my-review-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+    .my-review-actions button {
+        border: 1px solid #f2cccc;
+        background: #fff4f4;
+        color: #b24b4b;
+        border-radius: 14px;
+        padding: 11px 14px;
+        font-family: monospace;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+    }
+
+        .my-review-actions button:hover {
+            background: #ffeaea;
+        }
+
+        .my-review-actions button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+.my-reviews-empty,
+.my-reviews-loading {
+    background: radial-gradient(circle at top left, rgba(200, 169, 90, 0.10), transparent 36%), rgba(255, 255, 255, 0.95);
+    border: 1px solid #eee6d8;
+    border-radius: 30px;
+    padding: 58px 28px;
+    text-align: center;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.04);
+}
+
+.my-reviews-empty-mark {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fbf6e8;
+    color: #8b6508;
+    border: 1px solid #ead9a5;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+.my-reviews-empty h2 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+}
+
+.my-reviews-empty p,
+.my-reviews-loading p {
+    max-width: 520px;
+    margin: 0 auto;
+    color: #666666;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+    .my-reviews-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .my-reviews-container {
+        padding: 34px 18px 70px;
+    }
+
+    .my-reviews-tabs {
+        display: flex;
+        flex-direction: column;
+        border-radius: 20px;
+        width: 100%;
+    }
+
+        .my-reviews-tabs button {
+            width: 100%;
+            border-radius: 14px;
+        }
+
+    .my-review-top {
+        flex-direction: column;
+    }
+
+    .my-review-images {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .my-review-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .my-reviews-container {
+        padding: 30px 14px 64px;
+    }
+
+    .my-reviews-hero h1 {
+        font-size: 32px;
+    }
+
+    .my-review-card {
+        padding: 20px;
+        border-radius: 22px;
+    }
+
+    .my-review-images {
+        grid-template-columns: 1fr;
+    }
+
+        .my-review-images img {
+            height: 150px;
+        }
+}

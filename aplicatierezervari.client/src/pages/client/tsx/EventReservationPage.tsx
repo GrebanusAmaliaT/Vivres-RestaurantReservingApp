@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Navbar } from '../../../components/Navbar';
-import { Footer } from '../../../components/Footer';
+
+import { ClientNavbar } from '../../../components/tsx/NavbarClient';
+import { Footer } from '../../../components/tsx/Footer';
+
 import { apiService } from '../../../services/api';
 import type {
     EventRestaurantListingDto,
@@ -16,6 +18,10 @@ interface EventReservationPageProps {
     onLogout: () => void;
     onBack: () => void;
     onRequestSent: () => void;
+
+    onAccountDetailsClick: () => void;
+    onMyReservationsClick: () => void;
+    onMyReviewsClick: () => void;
 }
 
 export const EventReservationPage: React.FC<EventReservationPageProps> = ({
@@ -23,7 +29,10 @@ export const EventReservationPage: React.FC<EventReservationPageProps> = ({
     userRole,
     onLogout,
     onBack,
-    onRequestSent
+    onRequestSent,
+    onAccountDetailsClick,
+    onMyReservationsClick,
+    onMyReviewsClick
 }) => {
     const [selectedEventTypeId, setSelectedEventTypeId] = useState<string>(
         restaurant?.eventOptions[0]?.eventTypeId ?? ''
@@ -152,7 +161,13 @@ export const EventReservationPage: React.FC<EventReservationPageProps> = ({
     if (!restaurant) {
         return (
             <div className="event-request-page">
-                <Navbar userRole={userRole} onLogout={onLogout} onBack={onBack} />
+                <ClientNavbar
+                    onLogout={onLogout}
+                    onBack={onBack}
+                    onAccountDetailsClick={onAccountDetailsClick}
+                    onMyReservationsClick={onMyReservationsClick}
+                    onMyReviewsClick={onMyReviewsClick}
+                />
 
                 <main className="event-request-empty">
                     <h1>Nu ai selectat niciun restaurant</h1>
@@ -169,7 +184,14 @@ export const EventReservationPage: React.FC<EventReservationPageProps> = ({
 
     return (
         <div className="event-request-page">
-            <Navbar userRole={userRole} onLogout={onLogout} onBack={onBack} />
+            <ClientNavbar
+                userRole={userRole}
+                onLogout={onLogout}
+                onBack={onBack}
+                onAccountDetailsClick={onAccountDetailsClick}
+                onMyReservationsClick={onMyReservationsClick}
+                onMyReviewsClick={onMyReviewsClick}
+            />
 
             <main className="event-request-container">
                 <section className="event-request-hero">
