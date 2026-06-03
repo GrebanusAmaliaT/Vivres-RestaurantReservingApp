@@ -8,6 +8,9 @@ import { RestaurantListingPage } from './pages/client/tsx/RestaurantListingPage'
 import { ReservationPage } from './pages/client/tsx/ReservationPage';
 import { RestaurantDto } from './types/index';
 import { EventRestaurantListingPage } from './pages/client/tsx/EventRestaurantListingPage';
+import { EventRestaurantDetailsPage } from './pages/client/tsx/EventRestaurantDetailsPage';
+import { EventRestaurantListingDto } from './types/index';
+import { EventReservationPage } from './pages/client/tsx/EventReservationPage';
 
 type AppView =
     | 'Landing'
@@ -18,13 +21,16 @@ type AppView =
     | 'Reservation'
     | 'Plan your event'
     | 'ManagerEvents'
-    | 'EventRestaurantListing';
+    | 'EventRestaurantListing'
+    | 'EventRestaurantDetails'
+    | 'EventReservation';
 
 export default function App() {
     const [role, setRole] = useState<string | null>(() => localStorage.getItem('vivres_role'));
     const [hasProfile, setHasProfile] = useState<boolean>(() => localStorage.getItem('vivres_has_profile') === 'true');
     const [currentView, setCurrentView] = useState<AppView>('Landing');
     const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantDto | null>(null);
+    const [selectedEventRestaurant, setSelectedEventRestaurant] = useState<EventRestaurantListingDto | null>(null);
 
     useEffect(() => {
         if (role) {
@@ -169,8 +175,36 @@ export default function App() {
                     userRole={role}
                     onLogout={handleLogout}
                     onBack={() => setCurrentView('Landing')}
+                    onSelectRestaurant={(restaurant) => {
+                        setSelectedEventRestaurant(restaurant);
+                        setCurrentView('EventRestaurantDetails');
+                    }}
                 />
             )}
+
+            {currentView === 'EventRestaurantDetails' && (
+                <EventRestaurantDetailsPage
+                    restaurant={selectedEventRestaurant}
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('EventRestaurantListing')}
+                    onStartEventRequest={(restaurant) => {
+                        setSelectedEventRestaurant(restaurant);
+                        setCurrentView('EventReservation');
+                    }}
+                />
+            )}
+
+            {currentView === 'EventReservation' && (
+                <EventReservationPage
+                    restaurant={selectedEventRestaurant}
+                    userRole={role}
+                    onLogout={handleLogout}
+                    onBack={() => setCurrentView('EventRestaurantDetails')}
+                    onRequestSent={() => setCurrentView('EventRestaurantListing')}
+                />
+            )}
+
         </div>
     );
 }

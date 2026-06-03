@@ -61,9 +61,9 @@ namespace AplicatieRezervari.Server.Services
         }
 
         private async Task<ReservationDto> HandleEventReservationAsync(
-    CreateReservationDto dto,
-    Restaurant restaurant,
-    string userId)
+            CreateReservationDto dto,
+            Restaurant restaurant,
+            string userId)
         {
             if (!restaurant.AcceptsEvents)
             {
@@ -85,16 +85,6 @@ namespace AplicatieRezervari.Server.Services
                 throw new ArgumentException("Restaurantul nu organizeaza acest tip de eveniment.");
             }
 
-            if (dto.NumberOfPeople < eventOption.MinPeople)
-            {
-                throw new ArgumentException($"Numarul minim de persoane pentru acest eveniment este {eventOption.MinPeople}.");
-            }
-
-            if (eventOption.MaxPeople.HasValue && dto.NumberOfPeople > eventOption.MaxPeople.Value)
-            {
-                throw new ArgumentException($"Numarul maxim de persoane pentru acest eveniment este {eventOption.MaxPeople.Value}.");
-            }
-
             var hasConfirmedReservationOnSameDay = HasConfirmedReservationOnSameDay(
                 restaurant,
                 dto.ReservationDate
@@ -105,13 +95,45 @@ namespace AplicatieRezervari.Server.Services
                 throw new ArgumentException("Restaurantul are deja o rezervare confirmata in acea zi.");
             }
 
+            var selectedMenus = dto.MenuSelections
+                .Where(selection => selection.Quantity > 0)
+                .ToList();
+
+            if (!selectedMenus.Any())
+            {
+                throw new ArgumentException("Trebuie selectat cel putin un meniu pentru eveniment.");
+            }
+
+            var availableMenus = eventOption.MenuOptions
+                .Where(menu => menu.IsEnabled)
+                .ToList();
+
+            int totalPeople = selectedMenus.Sum(selection => selection.Quantity);
+
+            if (totalPeople < eventOption.MinPeople)
+            {
+                throw new ArgumentException($"Numarul minim de persoane pentru acest eveniment este {eventOption.MinPeople}.");
+            }
+
+            if (eventOption.MaxPeople.HasValue && totalPeople > eventOption.MaxPeople.Value)
+            {
+                throw new ArgumentException($"Numarul maxim de persoane pentru acest eveniment este {eventOption.MaxPeople.Value}.");
+            }
+
+            if (totalPeople > restaurant.Capacity)
+            {
+                throw new ArgumentException("Numarul de persoane depaseste capacitatea restaurantului.");
+            }
+
+            decimal estimatedTotal = 0;
+
             var reservation = new Reservation
             {
                 Id = Guid.NewGuid(),
                 RestaurantId = restaurant.Id,
                 UserId = userId,
                 ReservationDate = dto.ReservationDate,
-                NumberOfPeople = dto.NumberOfPeople,
+                NumberOfPeople = totalPeople,
                 SpecialRequests = dto.SpecialRequests,
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow,
@@ -121,14 +143,37 @@ namespace AplicatieRezervari.Server.Services
                 EventTypeId = eventOption.EventTypeId,
                 EventMenuType = eventOption.EventType.Name,
 
-                EstimatedTotalCost = eventOption.PricePerPerson * dto.NumberOfPeople,
-
                 RestaurantTableId = null
             };
+
+            foreach (var selectedMenu in selectedMenus)
+            {
+                var menu = availableMenus.FirstOrDefault(m =>
+                    m.Id == selectedMenu.RestaurantEventMenuOptionId);
+
+                if (menu == null)
+                {
+                    throw new ArgumentException("Unul dintre meniurile selectate nu este disponibil pentru acest restaurant.");
+                }
+
+                estimatedTotal += menu.PricePerPerson * selectedMenu.Quantity;
+
+                reservation.EventMenuSelections.Add(new ReservationEventMenuSelection
+                {
+                    Id = Guid.NewGuid(),
+                    RestaurantEventMenuOptionId = menu.Id,
+                    Quantity = selectedMenu.Quantity,
+                    PricePerPersonAtRequest = menu.PricePerPerson,
+                    MenuNameSnapshot = menu.MenuType.Name
+                });
+            }
+
+            reservation.EstimatedTotalCost = estimatedTotal;
 
             var result = await _reservationRepository.CreateAsync(reservation);
 
             return MapToDto(result, restaurant);
+
         }
         private async Task<ReservationDto> HandleRegularReservationAsync(
             CreateReservationDto dto,
@@ -372,7 +417,17 @@ namespace AplicatieRezervari.Server.Services
                 EstimatedTotalCost = reservation.EstimatedTotalCost,
                 CreatedAt = reservation.CreatedAt,
                 EventTypeId = reservation.EventTypeId,
-                EventTypeName = reservation.EventType?.Name ?? reservation.EventMenuType
+                EventTypeName = reservation.EventType?.Name ?? reservation.EventMenuType,
+                MenuSelections = reservation.EventMenuSelections?
+                .Select(selection => new ReservationEventMenuSelectionDto
+                {
+                    Id = selection.Id,
+                    MenuName = selection.MenuNameSnapshot,
+                    Quantity = selection.Quantity,
+                    PricePerPersonAtRequest = selection.PricePerPersonAtRequest,
+                    TotalPrice = selection.Quantity * selection.PricePerPersonAtRequest
+                })
+                .ToList() ?? new List<ReservationEventMenuSelectionDto>()
             };
         }
     }

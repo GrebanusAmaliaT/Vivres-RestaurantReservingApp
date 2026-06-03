@@ -44,5 +44,22 @@
         public int? MaxPeople { get; set; }
 
         public string? Details { get; set; }
+
+        public List<RestaurantEventMenuOptionPublicDto> MenuOptions { get; set; } = new();
+    }
+
+    public class RestaurantEventMenuOptionPublicDto
+    {
+        public Guid Id { get; set; }
+
+        public Guid MenuTypeId { get; set; }
+
+        public string MenuTypeCode { get; set; } = string.Empty;
+
+        public string MenuTypeName { get; set; } = string.Empty;
+
+        public decimal PricePerPerson { get; set; }
+
+        public string? Details { get; set; }
     }
 }

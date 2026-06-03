@@ -6,7 +6,8 @@ import {
     RestaurantEventSettingsDto,
     UpdateRestaurantEventsDto,
     EventRestaurantListingDto,
-    EventTypeDto
+    EventTypeDto,
+    MenuTypeDto
 } from '../types/index';
 
 const API_BASE_URL = 'https://localhost:7065/api';
@@ -135,6 +136,23 @@ export const apiService = {
             return await response.json();
         } catch (error) {
             console.error('API Error in getFilteredRestaurants:', error);
+            return [];
+        }
+    },
+    async getMenuTypes(): Promise<MenuTypeDto[]> {
+        try {
+            const response = await fetch(`${API_BASE_URL}/Restaurants/menu-types`, {
+                method: 'GET',
+                headers: getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load menu types');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error in getMenuTypes:', error);
             return [];
         }
     },
@@ -269,25 +287,25 @@ export const apiService = {
         cityId?: string,
         eventTypeId?: string,
         numberOfPeople?: number,
-        maxPricePerPerson?: number
+        maxPricePerPerson?: number,
+        menuTypeIds?: string[]
     ): Promise<EventRestaurantListingDto[]> {
         try {
             const queryParams = new URLSearchParams();
 
-            if (cityId) {
-                queryParams.append('cityId', cityId);
-            }
-
-            if (eventTypeId) {
-                queryParams.append('eventTypeId', eventTypeId);
-            }
-
+            if (cityId) queryParams.append('cityId', cityId);
+            if (eventTypeId) queryParams.append('eventTypeId', eventTypeId);
             if (numberOfPeople && numberOfPeople > 0) {
                 queryParams.append('numberOfPeople', numberOfPeople.toString());
             }
-
             if (maxPricePerPerson && maxPricePerPerson > 0) {
                 queryParams.append('maxPricePerPerson', maxPricePerPerson.toString());
+            }
+
+            if (menuTypeIds && menuTypeIds.length > 0) {
+                menuTypeIds.forEach(menuTypeId => {
+                    queryParams.append('menuTypeIds', menuTypeId);
+                });
             }
 
             const response = await fetch(
@@ -308,5 +326,4 @@ export const apiService = {
             return [];
         }
     }
-
 };

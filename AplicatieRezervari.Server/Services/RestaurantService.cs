@@ -227,6 +227,9 @@ namespace AplicatieRezervari.Server.Services
             var restaurant = await _context.Restaurants
                 .Include(r => r.EventOptions)
                     .ThenInclude(e => e.EventType)
+                .Include(r => r.EventOptions)
+                    .ThenInclude(e => e.MenuOptions)
+                        .ThenInclude(m => m.MenuType)
                 .FirstOrDefaultAsync(r => r.ManagerId == managerId);
 
             if (restaurant == null)
@@ -239,10 +242,32 @@ namespace AplicatieRezervari.Server.Services
                 .OrderBy(e => e.Name)
                 .ToListAsync();
 
+            var menuTypes = await _context.MenuTypes
+                .Where(m => m.IsActive)
+                .OrderBy(m => m.Name)
+                .ToListAsync();
+
             var eventOptions = eventTypes.Select(eventType =>
             {
                 var option = restaurant.EventOptions
                     .FirstOrDefault(o => o.EventTypeId == eventType.Id);
+
+                var menuOptions = menuTypes.Select(menuType =>
+                {
+                    var existingMenuOption = option?.MenuOptions
+                        .FirstOrDefault(m => m.MenuTypeId == menuType.Id);
+
+                    return new RestaurantEventMenuOptionDto
+                    {
+                        Id = existingMenuOption?.Id ?? Guid.Empty,
+                        MenuTypeId = menuType.Id,
+                        MenuTypeCode = menuType.Code,
+                        MenuTypeName = menuType.Name,
+                        IsEnabled = existingMenuOption?.IsEnabled ?? false,
+                        PricePerPerson = existingMenuOption?.PricePerPerson ?? 0,
+                        Details = existingMenuOption?.Details
+                    };
+                }).ToList();
 
                 return new RestaurantEventOptionDto
                 {
@@ -254,7 +279,8 @@ namespace AplicatieRezervari.Server.Services
                     PricePerPerson = option?.PricePerPerson ?? 0,
                     MinPeople = option?.MinPeople ?? 1,
                     MaxPeople = option?.MaxPeople,
-                    Details = option?.Details
+                    Details = option?.Details,
+                    MenuOptions = menuOptions
                 };
             }).ToList();
 
@@ -307,6 +333,40 @@ namespace AplicatieRezervari.Server.Services
                 existingOption.MinPeople = optionDto.MinPeople;
                 existingOption.MaxPeople = optionDto.MaxPeople;
                 existingOption.Details = optionDto.Details;
+
+                foreach (var menuDto in optionDto.MenuOptions)
+                {
+                    var menuTypeExists = await _context.MenuTypes
+                        .AnyAsync(m => m.Id == menuDto.MenuTypeId && m.IsActive);
+
+                    if (!menuTypeExists)
+                    {
+                        continue;
+                    }
+
+                    var existingMenuOption = existingOption.MenuOptions
+                        .FirstOrDefault(m => m.MenuTypeId == menuDto.MenuTypeId);
+
+                    if (existingMenuOption == null)
+                    {
+                        existingMenuOption = new RestaurantEventMenuOption
+                        {
+                            Id = Guid.NewGuid(),
+                            RestaurantEventOptionId = existingOption.Id,
+                            MenuTypeId = menuDto.MenuTypeId
+                        };
+
+                        _context.RestaurantEventMenuOptions.Add(existingMenuOption);
+                    }
+
+                    existingMenuOption.IsEnabled =
+                        dto.AcceptsEvents &&
+                        existingOption.IsEnabled &&
+                        menuDto.IsEnabled;
+
+                    existingMenuOption.PricePerPerson = menuDto.PricePerPerson;
+                    existingMenuOption.Details = menuDto.Details;
+                }
             }
 
             if (!dto.AcceptsEvents)
@@ -320,15 +380,19 @@ namespace AplicatieRezervari.Server.Services
             await _context.SaveChangesAsync();
         }
         public async Task<IEnumerable<EventRestaurantListingDto>> GetEventRestaurantsAsync(
-        Guid? cityId,
-        Guid? eventTypeId,
-        int? numberOfPeople,
-        decimal? maxPricePerPerson)
+            Guid? cityId,
+            Guid? eventTypeId,
+            int? numberOfPeople,
+            decimal? maxPricePerPerson,
+            List<Guid>? menuTypeIds)
         {
             var restaurants = await _context.Restaurants
                 .Include(r => r.City)
                 .Include(r => r.EventOptions)
                     .ThenInclude(option => option.EventType)
+                .Include(r => r.EventOptions)
+                    .ThenInclude(option => option.MenuOptions)
+                        .ThenInclude(menu => menu.MenuType)
                 .Where(r => r.AcceptsEvents)
                 .ToListAsync();
 
@@ -338,6 +402,8 @@ namespace AplicatieRezervari.Server.Services
                     .Where(r => r.CityId == cityId.Value)
                     .ToList();
             }
+
+            var selectedMenuTypeIds = menuTypeIds ?? new List<Guid>();
 
             var result = restaurants
                 .Select(restaurant =>
@@ -362,16 +428,53 @@ namespace AplicatieRezervari.Server.Services
                             .ToList();
                     }
 
+                    if (selectedMenuTypeIds.Any())
+                    {
+                        enabledOptions = enabledOptions
+                            .Where(option =>
+                                selectedMenuTypeIds.All(menuTypeId =>
+                                    option.MenuOptions.Any(menu =>
+                                        menu.MenuTypeId == menuTypeId &&
+                                        menu.IsEnabled)))
+                            .ToList();
+                    }
+
                     if (maxPricePerPerson.HasValue)
                     {
                         enabledOptions = enabledOptions
-                            .Where(option => option.PricePerPerson <= maxPricePerPerson.Value)
+                            .Where(option =>
+                            {
+                                var enabledMenus = option.MenuOptions
+                                    .Where(menu => menu.IsEnabled)
+                                    .ToList();
+
+                                if (!enabledMenus.Any())
+                                {
+                                    return option.PricePerPerson <= maxPricePerPerson.Value;
+                                }
+
+                                return enabledMenus.Any(menu => menu.PricePerPerson <= maxPricePerPerson.Value);
+                            })
                             .ToList();
                     }
 
                     if (!enabledOptions.Any())
                     {
                         return null;
+                    }
+
+                    decimal GetOptionMinPrice(RestaurantEventOption option)
+                    {
+                        var enabledMenus = option.MenuOptions
+                            .Where(menu => menu.IsEnabled)
+                            .ToList();
+
+                        if (enabledMenus.Any())
+                        {
+                            return enabledMenus.Min(menu => menu.PricePerPerson);
+                        }
+
+                        return option.PricePerPerson;
                     }
 
                     return new EventRestaurantListingDto
@@ -387,19 +490,32 @@ namespace AplicatieRezervari.Server.Services
                         Image1Url = restaurant.Image1Url,
                         Image2Url = restaurant.Image2Url,
                         Image3Url = restaurant.Image3Url,
-                        MinEventPricePerPerson = enabledOptions.Min(option => option.PricePerPerson),
+                        MinEventPricePerPerson = enabledOptions.Min(GetOptionMinPrice),
 
                         EventOptions = enabledOptions
-                            .OrderBy(option => option.PricePerPerson)
+                            .OrderBy(GetOptionMinPrice)
                             .Select(option => new RestaurantEventOptionPublicDto
                             {
                                 EventTypeId = option.EventTypeId,
                                 EventTypeCode = option.EventType.Code,
                                 EventTypeName = option.EventType.Name,
-                                PricePerPerson = option.PricePerPerson,
+                                PricePerPerson = GetOptionMinPrice(option),
                                 MinPeople = option.MinPeople,
                                 MaxPeople = option.MaxPeople,
-                                Details = option.Details
+                                Details = option.Details,
+                                MenuOptions = option.MenuOptions
+                                    .Where(menu => menu.IsEnabled)
+                                    .OrderBy(menu => menu.MenuType.Name)
+                                    .Select(menu => new RestaurantEventMenuOptionPublicDto
+                                    {
+                                        Id = menu.Id,
+                                        MenuTypeId = menu.MenuTypeId,
+                                        MenuTypeCode = menu.MenuType.Code,
+                                        MenuTypeName = menu.MenuType.Name,
+                                        PricePerPerson = menu.PricePerPerson,
+                                        Details = menu.Details
+                                    })
+                                    .ToList()
                             })
                             .ToList()
                     };
@@ -437,6 +553,20 @@ namespace AplicatieRezervari.Server.Services
             return savedImageUrls;
         }
 
+        public async Task<IEnumerable<MenuTypeDto>> GetMenuTypesAsync()
+        {
+            return await _context.MenuTypes
+                .Where(m => m.IsActive)
+                .OrderBy(m => m.Name)
+                .Select(m => new MenuTypeDto
+                {
+                    Id = m.Id,
+                    Code = m.Code,
+                    Name = m.Name,
+                    Description = m.Description
+                })
+                .ToListAsync();
+        }
         private void DeletePhysicalFile(string? relativeUrl)
         {
             if (string.IsNullOrEmpty(relativeUrl)) return;
@@ -482,6 +612,7 @@ namespace AplicatieRezervari.Server.Services
             Image1Url = r.Image1Url,
             Image2Url = r.Image2Url,
             Image3Url = r.Image3Url
+
         };
 
         public async Task<RestaurantDto?> GetRestaurantByManagerIdAsync(string managerIdStr)

@@ -16,5 +16,14 @@ namespace AplicatieRezervari.Server.DTOs
         public bool IsEvent { get; set; }
         public Guid? EventTypeId { get; set; }
         public string? EventMenuType { get; set; }
+
+        public List<CreateReservationMenuSelectionDto> MenuSelections { get; set; } = new();
+    }
+
+    public class CreateReservationMenuSelectionDto
+    {
+        public Guid RestaurantEventMenuOptionId { get; set; }
+
+        public int Quantity { get; set; }
     }
 }

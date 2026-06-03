@@ -18,7 +18,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Review> Reviews { get; set; } = default!;
     public DbSet<RestaurantTable> RestaurantTables { get; set; } = default!;
     public DbSet<EventType> EventTypes { get; set; } = default!;
-    public DbSet<RestaurantEventOption> RestaurantEventOptions { get; set; } = default!; 
+    public DbSet<RestaurantEventOption> RestaurantEventOptions { get; set; } = default!;
+    public DbSet<MenuType> MenuTypes { get; set; } = default!;
+    public DbSet<RestaurantEventMenuOption> RestaurantEventMenuOptions { get; set; } = default!;
+    public DbSet<ReservationEventMenuSelection> ReservationEventMenuSelections { get; set; } = default!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -79,6 +82,42 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(r => r.EventType)
             .WithMany(e => e.Reservations)
             .HasForeignKey(r => r.EventTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<RestaurantEventMenuOption>()
+        .Property(m => m.PricePerPerson)
+        .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<RestaurantEventMenuOption>()
+            .HasOne(m => m.RestaurantEventOption)
+            .WithMany(o => o.MenuOptions)
+            .HasForeignKey(m => m.RestaurantEventOptionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RestaurantEventMenuOption>()
+            .HasOne(m => m.MenuType)
+            .WithMany(t => t.RestaurantEventMenuOptions)
+            .HasForeignKey(m => m.MenuTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<RestaurantEventMenuOption>()
+            .HasIndex(m => new { m.RestaurantEventOptionId, m.MenuTypeId })
+            .IsUnique();
+
+        modelBuilder.Entity<ReservationEventMenuSelection>()
+            .Property(s => s.PricePerPersonAtRequest)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<ReservationEventMenuSelection>()
+            .HasOne(s => s.Reservation)
+            .WithMany(r => r.EventMenuSelections)
+            .HasForeignKey(s => s.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ReservationEventMenuSelection>()
+            .HasOne(s => s.RestaurantEventMenuOption)
+            .WithMany()
+            .HasForeignKey(s => s.RestaurantEventMenuOptionId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

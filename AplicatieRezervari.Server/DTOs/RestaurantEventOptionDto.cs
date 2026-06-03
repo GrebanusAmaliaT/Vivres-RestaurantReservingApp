@@ -19,5 +19,7 @@
         public int? MaxPeople { get; set; }
 
         public string? Details { get; set; }
+
+        public List<RestaurantEventMenuOptionDto> MenuOptions { get; set; } = new();
     }
 }

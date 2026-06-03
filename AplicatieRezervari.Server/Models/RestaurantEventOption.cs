@@ -22,5 +22,7 @@ namespace AplicatieRezervari.Server.Models
         public int? MaxPeople { get; set; }
 
         public string? Details { get; set; }
+        public virtual ICollection<RestaurantEventMenuOption> MenuOptions { get; set; } = new List<RestaurantEventMenuOption>();
+
     }
 }

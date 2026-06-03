@@ -43,7 +43,9 @@ export interface CreateReservationDto {
     numberOfPeople: number;
     specialRequests?: string;
     isEvent: boolean;
+    eventTypeId?: string | null;
     eventMenuType?: string | null;
+    menuSelections?: CreateReservationMenuSelectionDto[];
 }
 
 export interface ReservationDto {
@@ -84,6 +86,8 @@ export interface RestaurantEventOptionDto {
     minPeople: number;
     maxPeople?: number | null;
     details?: string | null;
+
+    menuOptions: RestaurantEventMenuOptionDto[];
 }
 
 export interface RestaurantEventSettingsDto {
@@ -113,6 +117,7 @@ export interface RestaurantEventOptionPublicDto {
     minPeople: number;
     maxPeople?: number | null;
     details?: string | null;
+    menuOptions: RestaurantEventMenuOptionPublicDto[];
 }
 
 export interface EventRestaurantListingDto {
@@ -129,4 +134,37 @@ export interface EventRestaurantListingDto {
     image3Url?: string | null;
     minEventPricePerPerson: number;
     eventOptions: RestaurantEventOptionPublicDto[];
+}
+
+export interface MenuTypeDto {
+    id: string;
+    code: string;
+    name: string;
+    description?: string | null;
+}
+
+export interface RestaurantEventMenuOptionDto {
+    id: string;
+    menuTypeId: string;
+    menuTypeCode: string;
+    menuTypeName: string;
+    isEnabled: boolean;
+    pricePerPerson: number;
+    details?: string | null;
+    menuOptions: RestaurantEventMenuOptionDto[];
+}
+
+export interface RestaurantEventMenuOptionPublicDto {
+    id: string;
+    menuTypeId: string;
+    menuTypeCode: string;
+    menuTypeName: string;
+    pricePerPerson: number;
+    details?: string | null;
+    menuOptions: RestaurantEventMenuOptionPublicDto[];
+}
+
+export interface CreateReservationMenuSelectionDto {
+    restaurantEventMenuOptionId: string;
+    quantity: number;
 }

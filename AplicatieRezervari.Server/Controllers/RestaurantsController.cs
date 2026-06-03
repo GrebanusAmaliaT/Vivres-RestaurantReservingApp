@@ -134,16 +134,26 @@ namespace AplicatieRezervari.Server.Controllers
             [FromQuery] Guid? cityId,
             [FromQuery] Guid? eventTypeId,
             [FromQuery] int? numberOfPeople,
-            [FromQuery] decimal? maxPricePerPerson)
+            [FromQuery] decimal? maxPricePerPerson,
+            [FromQuery] List<Guid>? menuTypeIds)
         {
             var restaurants = await _restaurantService.GetEventRestaurantsAsync(
                 cityId,
                 eventTypeId,
                 numberOfPeople,
-                maxPricePerPerson
+                maxPricePerPerson,
+                menuTypeIds
             );
 
             return Ok(restaurants);
         }
-    }
+
+        [HttpGet("menu-types")]
+        public async Task<IActionResult> GetMenuTypes()
+        {
+            var menuTypes = await _restaurantService.GetMenuTypesAsync();
+            return Ok(menuTypes);
+        }
+
+}
 }

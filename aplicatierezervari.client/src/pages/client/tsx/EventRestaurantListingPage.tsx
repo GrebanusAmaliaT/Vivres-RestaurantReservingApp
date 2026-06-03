@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Navbar } from '../../../components/Navbar';
 import { Footer } from '../../../components/Footer';
 import { apiService } from '../../../services/api';
@@ -6,20 +6,22 @@ import type {
     CityDto,
     EventRestaurantListingDto,
     EventTypeDto,
-    RestaurantEventOptionPublicDto
+    RestaurantEventOptionPublicDto,
+    MenuTypeDto
 } from '../../../types/index';
 import '../css/EventRestaurantListingPage.css';
 
 interface EventRestaurantListingPageProps {
     userRole: string | null;
     onLogout: () => void;
-    onBack: () => void;
+    onBack: () => void; onSelectRestaurant: (restaurant: EventRestaurantListingDto) => void;
 }
 
 export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProps> = ({
     userRole,
     onLogout,
-    onBack
+    onBack,
+    onSelectRestaurant
 }) => {
     const [cities, setCities] = useState<CityDto[]>([]);
     const [eventTypes, setEventTypes] = useState<EventTypeDto[]>([]);
@@ -29,6 +31,9 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
     const [selectedEventTypeId, setSelectedEventTypeId] = useState<string>('');
     const [numberOfPeople, setNumberOfPeople] = useState<string>('');
     const [maxPricePerPerson, setMaxPricePerPerson] = useState<string>('');
+    const [menuTypes, setMenuTypes] = useState<MenuTypeDto[]>([]);
+    const [selectedMenuTypeIds, setSelectedMenuTypeIds] = useState<string[]>([]);
+    const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState<boolean>(false);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [searching, setSearching] = useState<boolean>(false);
@@ -38,9 +43,10 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
             try {
                 setLoading(true);
 
-                const [citiesData, eventTypesData] = await Promise.all([
+                const [citiesData, eventTypesData, menuTypesData] = await Promise.all([
                     apiService.getCities(),
-                    apiService.getEventTypes()
+                    apiService.getEventTypes(),
+                    apiService.getMenuTypes()
                 ]);
 
                 setCities(citiesData);
@@ -48,6 +54,8 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
 
                 const cityId = citiesData.length > 0 ? citiesData[0].id : '';
                 setSelectedCityId(cityId);
+
+                setMenuTypes(menuTypesData);
 
                 const restaurantData = await apiService.getEventRestaurants(cityId || undefined);
                 setRestaurants(restaurantData);
@@ -72,7 +80,8 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
                 selectedCityId || undefined,
                 selectedEventTypeId || undefined,
                 guests,
-                budget
+                budget,
+                selectedMenuTypeIds
             );
 
             setRestaurants(data);
@@ -87,6 +96,8 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
         setSelectedEventTypeId('');
         setNumberOfPeople('');
         setMaxPricePerPerson('');
+        setSelectedMenuTypeIds([]);
+        setIsMenuDropdownOpen(false);
 
         try {
             setSearching(true);
@@ -108,6 +119,26 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
         }
 
         return `https://localhost:7065${imageUrl}`;
+    };
+
+    const toggleMenuType = (menuTypeId: string) => {
+        setSelectedMenuTypeIds(prev =>
+            prev.includes(menuTypeId)
+                ? prev.filter(id => id !== menuTypeId)
+                : [...prev, menuTypeId]
+        );
+    };
+    const getSelectedMenuText = () => {
+        if (selectedMenuTypeIds.length === 0) {
+            return 'Alege meniuri';
+        }
+
+        if (selectedMenuTypeIds.length === 1) {
+            const selectedMenu = menuTypes.find(menu => menu.id === selectedMenuTypeIds[0]);
+            return selectedMenu?.name ?? '1 meniu selectat';
+        }
+
+        return `${selectedMenuTypeIds.length} meniuri selectate`;
     };
 
     const getMainOption = (
@@ -208,6 +239,34 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
                         />
                     </div>
 
+                    <div className="event-filter-field event-menu-dropdown-field">
+                        <label>Tip meniu</label>
+
+                        <button
+                            type="button"
+                            className="event-menu-dropdown-button"
+                            onClick={() => setIsMenuDropdownOpen(prev => !prev)}
+                        >
+                            <span>{getSelectedMenuText()}</span>
+                            <span className="event-menu-dropdown-arrow">⌄</span>
+                        </button>
+
+                        {isMenuDropdownOpen && (
+                            <div className="event-menu-dropdown-panel">
+                                {menuTypes.map(menuType => (
+                                    <label key={menuType.id} className="event-menu-dropdown-option">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedMenuTypeIds.includes(menuType.id)}
+                                            onChange={() => toggleMenuType(menuType.id)}
+                                        />
+                                        <span>{menuType.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="event-filter-field">
                         <label>Buget max. / persoana</label>
                         <input
@@ -268,6 +327,7 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
                                 <article
                                     className="event-restaurant-card"
                                     key={restaurant.id}
+                                    onClick={() => onSelectRestaurant(restaurant)}
                                 >
                                     <div className="event-restaurant-image-wrap">
                                         {imageUrl ? (
@@ -343,8 +403,9 @@ export const EventRestaurantListingPage: React.FC<EventRestaurantListingPageProp
                                             <button
                                                 type="button"
                                                 className="event-primary-btn"
-                                                onClick={() => {
-                                                    alert('Urmatorul pas va fi formularul pentru cererea de eveniment.');
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelectRestaurant(restaurant);
                                                 }}
                                             >
                                                 Planifica evenimentul

@@ -25,5 +25,20 @@ namespace AplicatieRezervari.Server.DTOs
         public int? MaxPeople { get; set; }
 
         public string? Details { get; set; }
+
+        public List<UpdateRestaurantEventMenuOptionDto> MenuOptions { get; set; } = new();
+    }
+
+    public class UpdateRestaurantEventMenuOptionDto
+    {
+        [Required]
+        public Guid MenuTypeId { get; set; }
+
+        public bool IsEnabled { get; set; }
+
+        [Range(0, 100000)]
+        public decimal PricePerPerson { get; set; }
+
+        public string? Details { get; set; }
     }
 }

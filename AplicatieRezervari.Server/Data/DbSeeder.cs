@@ -184,6 +184,82 @@ namespace AplicatieRezervari.Server.Data
                 }
             }
 
+            var menuTypes = new List<MenuType>
+            {
+                new MenuType
+                {
+                    Code = "standard",
+                    Name = "Standard Menu",
+                    Description = "Classic menu suitable for most events"
+                },
+                new MenuType
+                {
+                    Code = "premium",
+                    Name = "Premium Menu",
+                    Description = "Enhanced menu with premium dishes"
+                },
+                new MenuType
+                {
+                    Code = "vegetarian",
+                    Name = "Vegetarian Menu",
+                    Description = "Menu without meat"
+                },
+                new MenuType
+                {
+                    Code = "vegan",
+                    Name = "Vegan Menu",
+                    Description = "Fully plant-based menu"
+                },
+                new MenuType
+                {
+                    Code = "gluten_free",
+                    Name = "Gluten-Free Menu",
+                    Description = "Menu options without gluten"
+                },
+                new MenuType
+                {
+                    Code = "kids",
+                    Name = "Kids Menu",
+                    Description = "Menu designed for children"
+                },
+                new MenuType
+                {
+                    Code = "fasting",
+                    Name = "Fasting / Lenten Menu",
+                    Description = "Menu suitable for fasting periods"
+                },
+                new MenuType
+                {
+                    Code = "lactose_free",
+                    Name = "Lactose-Free Menu",
+                    Description = "Menu without lactose"
+                },
+                new MenuType
+                {
+                    Code = "pescatarian",
+                    Name = "Pescatarian Menu",
+                    Description = "Menu based on fish and seafood"
+                },
+                new MenuType
+                {
+                    Code = "custom",
+                    Name = "Custom Menu",
+                    Description = "Custom menu based on client needs"
+                }
+            };
+
+            foreach (var menuType in menuTypes)
+            {
+                bool exists = context.MenuTypes.Any(m => m.Code == menuType.Code);
+
+                if (!exists)
+                {
+                    context.MenuTypes.Add(menuType);
+                }
+            }
+
+            await context.SaveChangesAsync();
+
             await context.SaveChangesAsync();
         }
     }

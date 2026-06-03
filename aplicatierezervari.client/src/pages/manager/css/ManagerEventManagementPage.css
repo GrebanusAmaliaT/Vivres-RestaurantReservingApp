@@ -1,10 +1,16 @@
+* {
+    box-sizing: border-box;
+}
+
 .manager-events-page {
     min-height: 100vh;
     background: #fbfaf7;
     color: #1f1f1f;
+    overflow-x: hidden;
 }
 
 .manager-events-container {
+    width: 100%;
     max-width: 1180px;
     margin: 0 auto;
     padding: 58px 24px 90px;
@@ -110,6 +116,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    white-space: nowrap;
 }
 
     .manager-events-main-toggle input,
@@ -123,44 +130,152 @@
     opacity: 0.58;
 }
 
-.manager-events-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-}
-
-.manager-event-card {
+.manager-event-type-selector {
     background: #ffffff;
     border: 1px solid #eee7d8;
     border-radius: 28px;
-    padding: 26px;
-    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.055);
+    padding: 28px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
 }
 
-.manager-event-card-header {
+    .manager-event-type-selector h2 {
+        font-size: 28px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .manager-event-type-selector p {
+        color: #6f6f6f;
+        line-height: 1.6;
+        margin-bottom: 22px;
+    }
+
+.manager-event-type-chips {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-    .manager-event-card-header h3 {
+.manager-event-type-chip {
+    border: 1px solid #ead9a5;
+    background: #ffffff;
+    color: #8b6508;
+    border-radius: 999px;
+    padding: 10px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    max-width: 100%;
+}
+
+    .manager-event-type-chip span {
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .manager-event-type-chip small {
+        font-size: 10px;
+        color: inherit;
+        opacity: 0.75;
+        text-transform: uppercase;
+    }
+
+    .manager-event-type-chip.active {
+        background: #fbf6e8;
+    }
+
+    .manager-event-type-chip.selected {
+        background: #8b6508;
+        border-color: #8b6508;
+        color: #ffffff;
+    }
+
+    .manager-event-type-chip:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+.manager-events-empty-selection,
+.manager-no-menus-box {
+    background: #ffffff;
+    border: 1px dashed #d8c898;
+    border-radius: 24px;
+    padding: 30px;
+    color: #6f6f6f;
+    text-align: center;
+}
+
+    .manager-events-empty-selection h3 {
+        color: #1f1f1f;
         font-size: 24px;
         font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+.manager-selected-event-panel {
+    background: #ffffff;
+    border: 1px solid #eee7d8;
+    border-radius: 32px;
+    padding: 30px;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.07);
+}
+
+.manager-selected-event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    border-bottom: 1px solid #f0eadc;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+}
+
+    .manager-selected-event-header h2 {
+        font-size: clamp(30px, 4vw, 38px);
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        margin-bottom: 8px;
+    }
+
+    .manager-selected-event-header p {
+        color: #6f6f6f;
+        line-height: 1.6;
         margin: 0;
     }
 
-.manager-event-fields {
+.manager-event-disable-btn {
+    border: 1px solid #f2cccc;
+    background: #fff4f4;
+    color: #b24b4b;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.manager-selected-event-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 30px;
 }
 
 .manager-event-field {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .manager-event-field-full {
@@ -176,7 +291,8 @@
 }
 
 .manager-event-field input,
-.manager-event-field textarea {
+.manager-event-field textarea,
+.manager-event-add-menu-row select {
     width: 100%;
     border: 1px solid #e2dac7;
     border-radius: 14px;
@@ -185,6 +301,7 @@
     padding: 12px 14px;
     outline: none;
     transition: all 0.2s ease;
+    min-width: 0;
 }
 
 .manager-event-field textarea {
@@ -192,22 +309,189 @@
 }
 
     .manager-event-field input:focus,
-    .manager-event-field textarea:focus {
+    .manager-event-field textarea:focus,
+    .manager-event-add-menu-row select:focus {
         border-color: #c8a95a;
         box-shadow: 0 0 0 4px rgba(200, 169, 90, 0.14);
     }
 
     .manager-event-field input:disabled,
-    .manager-event-field textarea:disabled {
+    .manager-event-field textarea:disabled,
+    .manager-event-add-menu-row select:disabled {
         background: #f5f2ec;
         color: #9b9b9b;
     }
 
+.manager-event-menu-picker {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 24px;
+    background: #fbfaf7;
+    border: 1px solid #f0eadc;
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+    .manager-event-menu-picker h3 {
+        font-size: 22px;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .manager-event-menu-picker p {
+        color: #6f6f6f;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+.manager-event-add-menu-row {
+    display: flex;
+    gap: 10px;
+    min-width: 360px;
+}
+
+    .manager-event-add-menu-row select {
+        flex: 1;
+    }
+
+    .manager-event-add-menu-row button {
+        border: none;
+        border-radius: 14px;
+        background: #1f1f1f;
+        color: #ffffff;
+        padding: 12px 16px;
+        font-family: monospace;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+        .manager-event-add-menu-row button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+.manager-active-menus-list {
+    display: grid;
+    gap: 14px;
+}
+
+.manager-active-menu-card {
+    border: 1px solid #eee7d8;
+    border-radius: 22px;
+    padding: 18px;
+    background: #ffffff;
+}
+
+.manager-active-menu-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+    .manager-active-menu-header strong {
+        display: block;
+        font-size: 16px;
+    }
+
+    .manager-active-menu-header span {
+        color: #8b6508;
+        font-family: monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .manager-active-menu-header button {
+        border: none;
+        background: transparent;
+        color: #b24b4b;
+        font-family: monospace;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+.manager-active-menu-fields {
+    display: grid;
+    grid-template-columns: 0.5fr 1fr;
+    gap: 14px;
+}
+
+/* Legacy classes kept safe in case older JSX still exists */
+.manager-events-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.manager-event-card {
+    background: #ffffff;
+    border: 1px solid #eee7d8;
+    border-radius: 28px;
+    padding: 26px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.055);
+}
+
+.manager-event-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.manager-event-menus-section {
+    margin-top: 22px;
+    border-top: 1px solid #f0eadc;
+    padding-top: 18px;
+}
+
+.manager-event-menu-row {
+    display: grid;
+    grid-template-columns: 1.1fr 0.7fr 1.2fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+    .manager-event-menu-row input[type="number"],
+    .manager-event-menu-row input[type="text"] {
+        border: 1px solid #e2dac7;
+        border-radius: 12px;
+        padding: 10px 12px;
+        width: 100%;
+        min-width: 0;
+    }
+
+/* Tablet */
 @media (max-width: 980px) {
+    .manager-events-container {
+        padding: 48px 22px 80px;
+    }
+
     .manager-events-title-row,
-    .manager-events-global-card {
+    .manager-events-global-card,
+    .manager-selected-event-header,
+    .manager-event-menu-picker {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+    }
+
+    .manager-events-save-btn,
+    .manager-event-disable-btn {
+        width: 100%;
+    }
+
+    .manager-event-add-menu-row {
+        min-width: 0;
+        width: 100%;
     }
 
     .manager-events-grid {
@@ -215,12 +499,140 @@
     }
 }
 
-@media (max-width: 650px) {
+/* Small tablets / large phones */
+@media (max-width: 760px) {
     .manager-events-container {
-        padding: 42px 18px 70px;
+        padding: 42px 18px 74px;
     }
 
+    .manager-events-title-row h1 {
+        font-size: 34px;
+    }
+
+    .manager-events-global-card,
+    .manager-event-type-selector,
+    .manager-selected-event-panel {
+        border-radius: 24px;
+        padding: 22px;
+    }
+
+    .manager-selected-event-grid,
+    .manager-active-menu-fields,
     .manager-event-fields {
         grid-template-columns: 1fr;
+    }
+
+    .manager-event-type-chips {
+        flex-direction: column;
+    }
+
+    .manager-event-type-chip {
+        width: 100%;
+        justify-content: space-between;
+        border-radius: 18px;
+    }
+
+    .manager-event-add-menu-row {
+        flex-direction: column;
+    }
+
+        .manager-event-add-menu-row button {
+            width: 100%;
+        }
+
+    .manager-active-menu-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+        .manager-active-menu-header button {
+            align-self: flex-start;
+        }
+
+    .manager-event-menu-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Phones */
+@media (max-width: 520px) {
+    .manager-events-container {
+        padding: 34px 14px 64px;
+    }
+
+    .manager-events-title-row {
+        gap: 18px;
+        padding-bottom: 22px;
+    }
+
+        .manager-events-title-row h1 {
+            font-size: 30px;
+            letter-spacing: -0.03em;
+        }
+
+        .manager-events-title-row p,
+        .manager-events-global-card p,
+        .manager-event-type-selector p,
+        .manager-selected-event-header p,
+        .manager-event-menu-picker p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+    .manager-events-global-card,
+    .manager-event-type-selector,
+    .manager-selected-event-panel,
+    .manager-active-menu-card,
+    .manager-event-menu-picker {
+        padding: 18px;
+        border-radius: 20px;
+    }
+
+    .manager-selected-event-header h2 {
+        font-size: 28px;
+    }
+
+    .manager-event-menu-picker h3 {
+        font-size: 20px;
+    }
+
+    .manager-events-save-btn,
+    .manager-event-disable-btn,
+    .manager-event-add-menu-row button {
+        padding: 12px 14px;
+        font-size: 10px;
+    }
+
+    .manager-event-field input,
+    .manager-event-field textarea,
+    .manager-event-add-menu-row select {
+        padding: 11px 12px;
+        font-size: 14px;
+    }
+
+    .manager-events-kicker {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+    }
+}
+
+@media (max-width: 380px) {
+    .manager-events-container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .manager-events-title-row h1 {
+        font-size: 27px;
+    }
+
+    .manager-event-type-chip {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .manager-events-main-toggle {
+        white-space: normal;
     }
 }

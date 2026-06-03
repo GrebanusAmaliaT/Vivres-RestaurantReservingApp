@@ -32,6 +32,8 @@ public class Reservation
 
     public decimal EstimatedTotalCost { get; set; }
 
+    public virtual ICollection<ReservationEventMenuSelection> EventMenuSelections { get; set; } = new List<ReservationEventMenuSelection>();
+
     [Required]
     public string UserId { get; set; } = string.Empty;
 
