@@ -64,7 +64,8 @@ namespace AplicatieRezervari.Server.Services
                 Rating = dto.Rating,
                 Comment = dto.Comment,
                 Type = reservation.Type,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsApproved=false
             };
 
             var imageUrls = await SaveReviewImagesAsync(dto.Images);
@@ -100,7 +101,7 @@ namespace AplicatieRezervari.Server.Services
                 .Include(r => r.User)
                 .Include(r => r.Reservation)
                 .Include(r => r.Images)
-                .Where(r => r.RestaurantId == restaurantId);
+                .Where(r => r.RestaurantId == restaurantId && r.IsApproved);
 
             if (type.HasValue)
             {
@@ -258,7 +259,9 @@ namespace AplicatieRezervari.Server.Services
                 Type = review.Type.ToString(),
                 ReservationDate = review.Reservation?.ReservationDate ?? default,
                 CreatedAt = review.CreatedAt,
-                ImageUrls = review.Images?.Select(i => i.ImageUrl).ToList() ?? new List<string>()
+                ImageUrls = review.Images?.Select(i => i.ImageUrl).ToList() ?? new List<string>(),
+                IsApproved = review.IsApproved,
+
             };
         }
     }

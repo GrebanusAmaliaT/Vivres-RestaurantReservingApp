@@ -25,5 +25,7 @@
         public DateTime CreatedAt { get; set; }
 
         public List<string> ImageUrls { get; set; } = new();
+
+        public bool IsApproved { get; set; }
     }
 }

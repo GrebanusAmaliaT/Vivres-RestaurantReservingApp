@@ -185,4 +185,23 @@ export interface ReviewDto {
     reservationDate: string;
     createdAt: string;
     imageUrls: string[];
+    isApproved: boolean;
+}
+
+export interface AdminUserDto {
+    id: string;
+    email: string;
+    userName: string;
+    hasProfileCompleted: boolean;
+    roles: string[];
+}
+
+export interface AdminRestaurantDto {
+    id: string;
+    name: string;
+    address: string;
+    cityName: string;
+    capacity: number;
+    acceptsEvents: boolean;
+    managerId: string;
 }

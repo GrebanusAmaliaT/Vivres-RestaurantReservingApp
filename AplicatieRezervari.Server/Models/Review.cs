@@ -33,5 +33,7 @@ namespace AplicatieRezervari.Server.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public virtual ICollection<ReviewImage> Images { get; set; } = new List<ReviewImage>();
+
+        public bool IsApproved { get; set; } = false;
     }
 }

@@ -1,8 +1,28 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    background-color: #f8f9fa; 
-    color: #1a1a1a; 
+    background-color: #ffffff;
+    color: #1a1a1a;
     overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
 }
 
 .font-elegant {
@@ -27,7 +47,7 @@ body {
     }
 
 .arrow-icon {
-    color: #999;
+    color: #999999;
     font-size: 1.5rem;
     transition: all 0.3s ease;
 }

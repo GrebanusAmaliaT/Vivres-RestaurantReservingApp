@@ -8,7 +8,9 @@ import {
     EventRestaurantListingDto,
     EventTypeDto,
     MenuTypeDto,
-    ReviewDto
+    ReviewDto,
+    AdminUserDto,
+    AdminRestaurantDto
 } from '../types/index';
 
 const API_BASE_URL = 'https://localhost:7065/api';
@@ -410,6 +412,85 @@ export const apiService = {
         }
 
         return await response.json();
+    },
+
+    async getAdminUsers(): Promise<AdminUserDto[]> {
+        const response = await fetch(`${API_BASE_URL}/Admin/users`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load admin users');
+        }
+
+        return await response.json();
+    },
+
+    async getAdminRestaurants(): Promise<AdminRestaurantDto[]> {
+        const response = await fetch(`${API_BASE_URL}/Admin/restaurants`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load admin restaurants');
+        }
+
+        return await response.json();
+    },
+
+    async getAdminPendingReviews(): Promise<ReviewDto[]> {
+        const response = await fetch(`${API_BASE_URL}/Admin/reviews/pending`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load pending reviews');
+        }
+
+        return await response.json();
+    },
+
+    async approveAdminReview(reviewId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/Admin/reviews/${reviewId}/approve`, {
+            method: 'PUT',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to approve review');
+        }
+    },
+
+    async rejectAdminReview(reviewId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/Admin/reviews/${reviewId}/reject`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to reject review');
+        }
+    },
+
+    async deleteAdminUser(userId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/Admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+
+            try {
+                const data = JSON.parse(text);
+                throw new Error(data.message || 'Failed to delete user');
+            } catch {
+                throw new Error('Failed to delete user');
+            }
+        }
     },
 
 
