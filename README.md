@@ -60,6 +60,79 @@ The application uses role-based authorization:
 - `RestaurantManager`
 - `Admin`
 
+
+## Screenshots
+
+### Landing page
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e85533f1-a7b2-4555-9f50-6b92f94da374" width="850" alt="Landing page hero" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e3045459-d01e-4767-9bd0-1131382f6efd" width="650" alt="Landing page section" />
+</p>
+
+---
+
+### Restaurant listing
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e04c1790-bab7-4a69-a0ec-72af65d0fd0f" width="700" alt="Restaurant listing page" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/caa54a4a-1dfb-44c2-92fb-35caaf4660dd" width="700" alt="Restaurant listing filters" />
+</p>
+
+---
+
+### Reservation form
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a88c3fb0-1faf-423d-814e-663c813a8aa3" width="750" alt="Reservation form" />
+</p>
+
+---
+
+### Event restaurant page
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/79afc6e2-f46e-43df-bf44-2181df7a7feb" width="750" alt="Event restaurant page" />
+</p>
+
+---
+
+### Manager dashboard
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6a78e3b4-3b54-42a1-ada7-52c19d998a95" width="850" alt="Manager dashboard" />
+</p>
+
+---
+
+### Admin dashboard
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/457baa07-176c-4650-85dc-8cd27c354d06" width="800" alt="Admin dashboard" />
+</p>
+
+---
+
+### My reservations
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/017745d9-b282-4c21-845b-b04f39429f27" width="750" alt="My reservations page" />
+</p>
+
+---
+
+### My reviews
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e0062ac8-0302-494f-a244-18cf0b27b7f5" width="750" alt="My reviews page" />
+</p>
+
 ## Project Structure
 
 ```txt
@@ -169,74 +242,3 @@ GET /api/Admin/reviews/pending
 PUT /api/Admin/reviews/{reviewId}/approve
 DELETE /api/Admin/reviews/{reviewId}/reject
 DELETE /api/Admin/users/{userId}
-## Screenshots
-
-### Landing page
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/e85533f1-a7b2-4555-9f50-6b92f94da374" width="850" alt="Landing page hero" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/e3045459-d01e-4767-9bd0-1131382f6efd" width="650" alt="Landing page section" />
-</p>
-
----
-
-### Restaurant listing
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/e04c1790-bab7-4a69-a0ec-72af65d0fd0f" width="700" alt="Restaurant listing page" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/caa54a4a-1dfb-44c2-92fb-35caaf4660dd" width="700" alt="Restaurant listing filters" />
-</p>
-
----
-
-### Reservation form
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/a88c3fb0-1faf-423d-814e-663c813a8aa3" width="750" alt="Reservation form" />
-</p>
-
----
-
-### Event restaurant page
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/79afc6e2-f46e-43df-bf44-2181df7a7feb" width="750" alt="Event restaurant page" />
-</p>
-
----
-
-### Manager dashboard
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/6a78e3b4-3b54-42a1-ada7-52c19d998a95" width="850" alt="Manager dashboard" />
-</p>
-
----
-
-### Admin dashboard
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/457baa07-176c-4650-85dc-8cd27c354d06" width="800" alt="Admin dashboard" />
-</p>
-
----
-
-### My reservations
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/017745d9-b282-4c21-845b-b04f39429f27" width="750" alt="My reservations page" />
-</p>
-
----
-
-### My reviews
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/e0062ac8-0302-494f-a244-18cf0b27b7f5" width="750" alt="My reviews page" />
-</p>
