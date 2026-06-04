@@ -56,24 +56,68 @@ export default function App() {
     const [selectedEventRestaurant, setSelectedEventRestaurant] =
         useState<EventRestaurantListingDto | null>(null);
 
+    const token = localStorage.getItem('vivres_token');
+
+    const isAuthenticated = Boolean(token && role);
+
+    const normalizedRole = role?.toLowerCase() ?? '';
+
+    const requireAuth = (targetView: AppView) => {
+        if (!isAuthenticated) {
+            setCurrentView('Auth');
+            return;
+        }
+
+        setCurrentView(targetView);
+    };
+
+    const requireRole = (targetView: AppView, allowedRoles: string[]) => {
+        if (!isAuthenticated) {
+            setCurrentView('Auth');
+            return;
+        }
+
+        const hasRole = allowedRoles
+            .map(roleName => roleName.toLowerCase())
+            .includes(normalizedRole);
+
+        if (!hasRole) {
+            setCurrentView('Landing');
+            return;
+        }
+
+        setCurrentView(targetView);
+    };
+
+    useEffect(() => {
+        const publicViews: AppView[] = ['Landing', 'Auth'];
+
+        if (!isAuthenticated && !publicViews.includes(currentView)) {
+            setCurrentView('Auth');
+        }
+    }, [isAuthenticated, currentView]);
+
     useEffect(() => {
         if (!role) {
             return;
         }
-
-        const normalizedRole = role.toLowerCase();
 
         if (normalizedRole === 'admin') {
             setCurrentView('AdminDashboard');
             return;
         }
 
-        if (normalizedRole === 'restaurantmanager' || normalizedRole === 'manager') {
+        if (normalizedRole === 'restaurantmanager' ) {
             setCurrentView(hasProfile ? 'ManagerDashboard' : 'ManagerSetup');
         }
-    }, [role, hasProfile]);
+    }, [role, normalizedRole, hasProfile]);
 
     const handleNavigation = (view: 'Book a table' | 'Plan your event') => {
+        if (!isAuthenticated) {
+            setCurrentView('Auth');
+            return;
+        }
+
         if (view === 'Book a table') {
             setCurrentView('RestaurantListing');
             return;
@@ -81,7 +125,6 @@ export default function App() {
 
         setCurrentView('EventRestaurantListing');
     };
-
     const handleAuthSuccess = (
         userRole: string,
         profileCompletedBackend?: boolean
@@ -153,6 +196,11 @@ export default function App() {
                 <LandingPage
                     onNavigate={handleNavigation}
                     onAccountClick={() => {
+                        if (!isAuthenticated) {
+                            setCurrentView('Auth');
+                            return;
+                        }
+
                         if (isUserAdmin) {
                             setCurrentView('AdminDashboard');
                             return;
@@ -163,14 +211,14 @@ export default function App() {
                             return;
                         }
 
-                        if (role) {
-                            setCurrentView('RestaurantListing');
+                        if (normalizedRole === 'client') {
+                            setCurrentView('MyReservations');
                             return;
                         }
 
-                        setCurrentView('Auth');
+                        setCurrentView('Landing');
                     }}
-                    userRole={role}
+                    userRole={role ?? 'Guest'}
                     onLogout={handleLogout}
                 />
             )}
@@ -210,11 +258,11 @@ export default function App() {
                     onBack={() => setCurrentView('Landing')}
                     onSelectRestaurant={(restaurant) => {
                         setSelectedRestaurant(restaurant);
-                        setCurrentView('Reservation');
+                        requireAuth('Reservation');
                     }}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
@@ -226,8 +274,8 @@ export default function App() {
                     onBack={() => setCurrentView('RestaurantListing')}
                     onReservationSent={() => setCurrentView('RestaurantListing')}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
@@ -241,8 +289,8 @@ export default function App() {
                         setCurrentView('EventRestaurantDetails');
                     }}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
@@ -257,8 +305,8 @@ export default function App() {
                         setCurrentView('EventReservation');
                     }}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
@@ -270,8 +318,8 @@ export default function App() {
                     onBack={() => setCurrentView('EventRestaurantDetails')}
                     onRequestSent={() => setCurrentView('EventRestaurantListing')}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
@@ -281,8 +329,8 @@ export default function App() {
                     onLogout={handleLogout}
                     onBack={() => setCurrentView('Landing')}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
@@ -292,18 +340,27 @@ export default function App() {
                     onLogout={handleLogout}
                     onBack={() => setCurrentView('Landing')}
                     onAccountDetailsClick={() => alert('Pagina Detalii cont urmeaza.')}
-                    onMyReservationsClick={() => setCurrentView('MyReservations')}
-                    onMyReviewsClick={() => setCurrentView('MyReviews')}
+                    onMyReservationsClick={() => requireRole('MyReservations', ['Client'])}
+                    onMyReviewsClick={() => requireRole('MyReviews', ['Client'])}
                 />
             )}
 
             {currentView === 'AdminDashboard' && (
-                <AdminDashboardPage
-                    userRole={role}
-                    onLogout={handleLogout}
-                    onBack={() => setCurrentView('Landing')}
-                    onAccountClick={() => setCurrentView('Auth')}
-                />
+                isAuthenticated && normalizedRole === 'admin' ? (
+                    <AdminDashboardPage
+                        userRole={role}
+                        onLogout={handleLogout}
+                        onBack={() => setCurrentView('Landing')}
+                        onAccountClick={() => setCurrentView('Auth')}
+                    />
+                ) : (
+                    <AuthPage
+                        onAuthSuccess={(rolePayload, hasProfileCompleted) =>
+                            handleAuthSuccess(rolePayload, hasProfileCompleted)
+                        }
+                        onBack={() => setCurrentView('Landing')}
+                    />
+                )
             )}
         </div>
     );

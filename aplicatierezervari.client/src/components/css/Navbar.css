@@ -1,0 +1,149 @@
+.main-navbar {
+    width: 100%;
+    padding: 28px 64px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-navbar-logo {
+    color: #1a1a1a;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.main-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.main-navbar-back {
+    border: none;
+    background: transparent;
+    color: #8b6508;
+    padding: 0;
+    font-family: monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+    .main-navbar-back:hover {
+        color: #1a1a1a;
+    }
+
+.main-navbar-account-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.main-navbar-role {
+    background-color: #6c757d;
+    color: #ffffff;
+    border-radius: 7px;
+    padding: 6px 11px;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.main-navbar-account-btn {
+    border: none;
+    background: transparent;
+    color: #1a1a1a;
+    padding: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 15px;
+    font-style: italic;
+    cursor: pointer;
+}
+
+    .main-navbar-account-btn:hover {
+        color: #8b6508;
+    }
+
+.main-navbar-logout-btn {
+    border: none;
+    background: transparent;
+    color: #dc3545;
+    padding: 0;
+    font-family: monospace;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+    .main-navbar-logout-btn:hover {
+        color: #a92331;
+    }
+
+.main-navbar-language {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #777777;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+    .main-navbar-language span {
+        cursor: pointer;
+    }
+
+        .main-navbar-language span.active {
+            color: #8b6508;
+        }
+
+.main-navbar-language-separator {
+    color: #9a9a9a;
+    cursor: default !important;
+}
+
+@media (max-width: 850px) {
+    .main-navbar {
+        padding: 24px 28px;
+    }
+
+    .main-navbar-right {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 650px) {
+    .main-navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        padding: 22px 18px;
+    }
+
+    .main-navbar-right {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .main-navbar-account-area {
+        gap: 12px;
+    }
+}
+
+@media (max-width: 420px) {
+    .main-navbar-account-area {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .main-navbar-language {
+        margin-left: auto;
+    }
+}

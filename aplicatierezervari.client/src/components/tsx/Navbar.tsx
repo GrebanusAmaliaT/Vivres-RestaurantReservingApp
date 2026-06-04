@@ -1,5 +1,6 @@
 ﻿import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import '../css/Navbar.css';
 
 interface NavbarProps {
     userRole?: string | null;
@@ -16,108 +17,84 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
     const { t, i18n } = useTranslation();
 
+    const displayRole = userRole ?? 'Guest';
+    const normalizedRole = displayRole.toLowerCase();
+
+    const isGuest = normalizedRole === 'guest';
+    const isClient = normalizedRole === 'client';
+
+    const shouldShowLogoutOutside =
+        !isGuest &&
+        !isClient &&
+        Boolean(onLogout);
+
     const changeLanguage = (lng: 'ro' | 'en') => {
         i18n.changeLanguage(lng);
     };
 
     return (
-        <header
-            className="d-flex justify-content-between align-items-center w-100"
-            style={{
-                padding: '28px 64px',
-                borderBottom: '1px solid #e0e0e0',
-                backgroundColor: '#ffffff'
-            }}
-        >
-            <span
-                className="text-uppercase fw-bold"
-                style={{
-                    letterSpacing: '0.2em',
-                    fontSize: '16px',
-                    color: '#1a1a1a'
-                }}
-            >
+        <header className="main-navbar">
+            <span className="main-navbar-logo">
                 Vivres
             </span>
 
-            <div className="d-flex align-items-center gap-4">
+            <div className="main-navbar-right">
                 {onBack && (
                     <button
                         type="button"
-                        className="btn btn-link text-decoration-none p-0 font-monospace shadow-none text-uppercase"
-                        style={{
-                            color: '#8b6508',
-                            fontSize: '12px',
-                            letterSpacing: '0.08em'
-                        }}
+                        className="main-navbar-back"
                         onClick={onBack}
                     >
                         ← Inapoi
                     </button>
                 )}
 
-                {userRole ? (
-                    <div className="d-flex align-items-center gap-2">
-                        <span className="badge bg-secondary font-monospace text-uppercase">
-                            {userRole}
-                        </span>
+                <div className="main-navbar-account-area">
+                    <span className="main-navbar-role">
+                        {displayRole}
+                    </span>
 
-                        {onLogout && (
-                            <button
-                                type="button"
-                                className="btn btn-link text-decoration-none p-0 text-danger small font-monospace shadow-none"
-                                onClick={onLogout}
-                            >
-                                {t('signOut')}
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    onAccountClick && (
+                    {onAccountClick && (
                         <button
                             type="button"
-                            className="btn btn-link text-decoration-none p-0 font-elegant shadow-none"
-                            style={{
-                                color: '#1a1a1a',
-                                fontSize: '15px',
-                                fontStyle: 'italic'
-                            }}
+                            className="main-navbar-account-btn"
                             onClick={onAccountClick}
                         >
                             {t('myAccount')}
                         </button>
-                    )
-                )}
+                    )}
 
-                <div
-                    className="d-flex gap-2 align-items-center"
-                    style={{
-                        fontSize: '12px',
-                        color: '#777777',
-                        fontWeight: 'bold'
-                    }}
-                >
+                    {shouldShowLogoutOutside && (
+                        <button
+                            type="button"
+                            className="main-navbar-logout-btn"
+                            onClick={onLogout}
+                        >
+                            {t('signOut')}
+                        </button>
+                    )}
+                </div>
+
+                <div className="main-navbar-language">
                     <span
-                        style={{
-                            cursor: 'pointer',
-                            color: i18n.language.toLowerCase().startsWith('ro')
-                                ? '#8b6508'
-                                : '#777777'
-                        }}
+                        className={
+                            i18n.language.toLowerCase().startsWith('ro')
+                                ? 'active'
+                                : ''
+                        }
                         onClick={() => changeLanguage('ro')}
                     >
                         RO
                     </span>
 
-                    <span className="text-muted">|</span>
+                    <span className="main-navbar-language-separator">|</span>
 
                     <span
-                        style={{
-                            cursor: 'pointer',
-                            color: i18n.language.toLowerCase().startsWith('en')
-                                ? '#8b6508'
-                                : '#777777'
-                        }}
+                        className={
+                            i18n.language.toLowerCase().startsWith('en')
+                                ? 'active'
+                                : ''
+                        }
                         onClick={() => changeLanguage('en')}
                     >
                         EN
